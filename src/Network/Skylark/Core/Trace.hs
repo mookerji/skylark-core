@@ -10,8 +10,7 @@
 -- Trace module for Skylark Core.
 
 module Network.Skylark.Core.Trace
-  ( module Formatting
-  , traceStderr
+  ( traceStderr
   , traceStdout
   , traceNull
   , traceDebug
@@ -28,7 +27,7 @@ import Data.Text
 import Data.Time.Clock
 import Data.Time.Format
 import Data.UUID
-import Formatting ( (%), sformat, stext )
+import Formatting
 import Network.Skylark.Core.Types
 import Network.Wai
 import System.Log.FastLogger

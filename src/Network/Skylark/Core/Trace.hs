@@ -97,4 +97,3 @@ traceWarn = traceLevel LevelWarn logWarnN
 
 traceError :: MonadCore e m => Text -> m ()
 traceError = traceLevel LevelError logErrorN
-

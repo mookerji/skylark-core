@@ -17,6 +17,7 @@ module Network.Skylark.Core.Trace
   , traceInfo
   , traceWarn
   , traceError
+  , txt
   ) where
 
 import BasicPrelude

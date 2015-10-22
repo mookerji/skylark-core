@@ -28,7 +28,7 @@ import Data.Text
 import Data.Time.Clock
 import Data.Time.Format
 import Data.UUID
-import Formatting
+import Formatting ( (%), sformat, stext )
 import Network.Skylark.Core.Types
 import Network.Wai
 import System.Log.FastLogger

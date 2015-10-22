@@ -16,6 +16,7 @@ library
   exposed-modules:     Network.Skylark.Core
   other-modules:       Network.Skylark.Core.Trace
                      , Network.Skylark.Core.Types
+  ghc-options:         -Wall -fno-warn-orphans
   build-depends:       amazonka
                      , base >= 4.7 && < 5
                      , basic-prelude

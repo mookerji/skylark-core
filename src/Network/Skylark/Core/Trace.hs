@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
 
 -- |
 -- Module:      Network.Skylark.Core.Trace
@@ -10,7 +10,10 @@
 -- Trace module for Skylark Core.
 
 module Network.Skylark.Core.Trace
-  ( traceDebug
+  ( traceStderr
+  , traceStdout
+  , traceNull
+  , traceDebug
   , traceInfo
   , traceWarn
   , traceError
@@ -19,7 +22,6 @@ module Network.Skylark.Core.Trace
 import BasicPrelude
 import Control.Lens
 import Control.Monad.Logger
-import Control.Monad.Reader
 import Data.Text
 import Data.Time.Clock
 import Data.Time.Format
@@ -27,6 +29,7 @@ import Data.UUID
 import Formatting
 import Network.Skylark.Core.Types
 import Network.Wai
+import System.Log.FastLogger
 
 class Txt a where
   txt :: a -> Text
@@ -49,11 +52,30 @@ instance Txt Request where
     sformat ("method= " % stext % " path= " % stext)
       (txt $ requestMethod request) (txt $ rawPathInfo request)
 
+trace :: LoggerSet -> Log
+trace l _ _ _ s = do
+  pushLogStr l s
+  flushLogStr l
+
+traceStderr :: IO Log
+traceStderr = do
+  l <- newStderrLoggerSet defaultBufSize
+  return $ trace l
+
+traceStdout :: IO Log
+traceStdout = do
+  l <- newStdoutLoggerSet defaultBufSize
+  return $ trace l
+
+traceNull :: Log
+traceNull _ _ _ _ =
+  return ()
+
 traceLevel :: MonadCore e m => LogLevel -> (Text -> m ()) -> Text -> m ()
 traceLevel level logN s = do
   level' <- view ctxLogLevel
   unless (level < level') $ do
-    time <- liftIO $ getCurrentTime
+    time <- liftIO getCurrentTime
     name <- view ctxName
     version <- view ctxVersion
     tag <- view ctxTag

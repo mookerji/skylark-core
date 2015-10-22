@@ -12,7 +12,6 @@ module Network.Skylark.Core
   , runCoreT
   ) where
 
-import BasicPrelude
 import Control.Monad.Logger
 import Control.Monad.Trans.AWS
 import Network.Skylark.Core.Trace

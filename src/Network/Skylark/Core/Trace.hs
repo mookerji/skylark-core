@@ -10,7 +10,8 @@
 -- Trace module for Skylark Core.
 
 module Network.Skylark.Core.Trace
-  ( traceStderr
+  ( Txt
+  , traceStderr
   , traceStdout
   , traceNull
   , traceDebug

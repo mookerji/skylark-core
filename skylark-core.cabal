@@ -1,12 +1,11 @@
 name:                  skylark-core
 version:               0.1.0
-synopsis:              Initial project skylark-core from stack
-description:           Please see README.md
-homepage:              http://github.com/mfine/skylark-core
+synopsis:              Skylark Core Support
+homepage:              http://github.com/swift-nav/skylark-core
 license:               BSD3
 license-file:          LICENSE
-author:                Mark Fine
-maintainer:            Mark Fine <mark.fine@gmail.com>
+author:                Swift Navigation Inc.
+maintainer:            Mark Fine <dev@swiftnav.com>
 copyright:             2015 Mark Fine
 category:              Web
 build-type:            Simple
@@ -14,51 +13,29 @@ cabal-version:         >= 1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
-  build-depends:       base >= 4.7 && < 5
+  exposed-modules:     Network.Skylark.Core
+  other-modules:       Network.Skylark.Core.Trace
+                     , Network.Skylark.Core.Types
+  build-depends:       amazonka
+                     , base >= 4.7 && < 5
                      , basic-prelude
-  default-language:    Haskell2010
-  default-extensions:  NoImplicitPrelude
-                       OverloadedStrings
-
-executable skylark-core
-  hs-source-dirs:      main
-  main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
-  build-depends:       base
-                     , basic-prelude
-                     , skylark-core
-  default-language:    Haskell2010
-  default-extensions:  NoImplicitPrelude
-                       OverloadedStrings
-
-test-suite test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Test.hs
-  build-depends:       base
-                     , basic-prelude
-                     , tasty
-                     , tasty-hunit
-                     , skylark-core
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
-  default-language:    Haskell2010
-  default-extensions:  NoImplicitPrelude
-                       OverloadedStrings
-
-benchmark bench
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      bench
-  main-is:             Bench.hs
-  build-depends:       base
-                     , basic-prelude
-                     , criterion
-                     , skylark-core
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
+                     , exceptions
+                     , fast-logger
+                     , formatting
+                     , lens
+                     , monad-control
+                     , monad-logger
+                     , mtl
+                     , resourcet
+                     , text
+                     , time
+                     , transformers-base
+                     , uuid
+                     , wai
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude
                        OverloadedStrings
 
 source-repository head
   type:     git
-  location: https://github.com/mfine/skylark-core
+  location: https://github.com/swift-nav/skylark-core

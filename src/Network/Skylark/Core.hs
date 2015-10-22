@@ -10,6 +10,7 @@ module Network.Skylark.Core
   ( module Network.Skylark.Core.Trace
   , module Network.Skylark.Core.Types
   , runCoreT
+  , runResourceT
   ) where
 
 import Control.Monad.Logger

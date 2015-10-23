@@ -38,6 +38,7 @@ newtype CoreT e m a = CoreT
              , MonadIO
              , MonadThrow
              , MonadCatch
+             , MonadMask
              , MonadLogger
              )
 

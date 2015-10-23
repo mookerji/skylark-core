@@ -17,6 +17,7 @@
 module Network.Skylark.Core.Types where
 
 import BasicPrelude
+import Control.Concurrent.STM
 import Control.Lens
 import Control.Monad.Base
 import Control.Monad.Catch
@@ -26,6 +27,16 @@ import Control.Monad.Trans.AWS hiding ( LogLevel, Request )
 import Control.Monad.Trans.Resource
 import Data.UUID
 import Network.Wai
+
+type TVarMap k v      = TVar (HashMap k v)
+type GettingMap k v r = Getting (TVarMap k v) r (TVarMap k v)
+
+type MonadMap k r m =
+  ( Eq k
+  , Hashable k
+  , MonadReader r m
+  , MonadIO m
+  )
 
 type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 

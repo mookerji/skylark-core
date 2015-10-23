@@ -7,15 +7,13 @@
 -- Core module for Skylark Core.
 
 module Network.Skylark.Core
-  ( module Network.Skylark.Core.Trace
-  , module Network.Skylark.Core.Types
+  ( module Network.Skylark.Core.Types
   , runCoreT
   , runResourceT
   ) where
 
 import Control.Monad.Logger
 import Control.Monad.Trans.AWS
-import Network.Skylark.Core.Trace
 import Network.Skylark.Core.Types
 
 runCoreT :: HasCtx r => r -> Log -> CoreT r m a -> m a

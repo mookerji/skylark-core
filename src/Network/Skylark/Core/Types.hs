@@ -23,7 +23,6 @@ import Control.Monad.Catch
 import Control.Monad.Logger
 import Control.Monad.Reader
 import Control.Monad.Trans.AWS hiding ( LogLevel, Request )
-import Control.Monad.Trans.Control
 import Control.Monad.Trans.Resource
 import Data.UUID
 import Network.Wai
@@ -83,19 +82,6 @@ instance MonadBase b m => MonadBase b (CoreT r m) where
 
 instance MonadTrans (CoreT r) where
   lift = CoreT . lift . lift
-
-instance MonadTransControl (CoreT r) where
-    type StT (CoreT r) a = StT (AWST' r) a
-    restoreT             = CoreT . restoreT . restoreT
-    liftWith f           = CoreT $
-      liftWith $ \g ->
-        liftWith $ \h ->
-          f (h . g . unCoreT)
-
-instance MonadBaseControl b m => MonadBaseControl b (CoreT r m) where
-    type StM (CoreT r m) a = ComposeSt (CoreT r) m a
-    restoreM               = defaultRestoreM
-    liftBaseWith           = defaultLiftBaseWith
 
 instance MonadResource m => MonadResource (CoreT r m) where
   liftResourceT = lift . liftResourceT

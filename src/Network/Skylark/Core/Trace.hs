@@ -55,7 +55,7 @@ instance Txt Request where
       (txt $ requestMethod request) (txt $ rawPathInfo request)
 
 trace :: LoggerSet -> Log
-trace l _ _ _ s = do
+trace l _loc _source _level s = do
   pushLogStr l s
   flushLogStr l
 
@@ -70,7 +70,7 @@ traceStdout = do
   return $ trace l
 
 traceNull :: Log
-traceNull _ _ _ _ =
+traceNull _loc _source _level _s =
   return ()
 
 traceLevel :: MonadCore e m => LogLevel -> (Text -> m ()) -> Text -> m ()

@@ -28,6 +28,7 @@ import Control.Monad.Trans.Resource
 import Data.UUID
 import Network.Wai
 
+type Log              = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 type TVarMap k v      = TVar (HashMap k v)
 type GettingMap k v r = Getting (TVarMap k v) r (TVarMap k v)
 
@@ -37,8 +38,6 @@ type MonadMap k r m =
   , MonadReader r m
   , MonadIO m
   )
-
-type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
 newtype CoreT e m a = CoreT
   { unCoreT :: LoggingT (AWST' e m) a

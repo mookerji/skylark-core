@@ -51,7 +51,7 @@ instance Txt UTCTime where
 
 instance Txt Request where
   txt request =
-    sformat ("method= " % stext % " path= " % stext)
+    sformat ("method=" % stext % " path=" % stext)
       (txt $ requestMethod request) (txt $ rawPathInfo request)
 
 trace :: LoggerSet -> Log

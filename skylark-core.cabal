@@ -16,9 +16,11 @@ library
   exposed-modules:     Network.Skylark.Core
                      , Network.Skylark.Core.Maps
                      , Network.Skylark.Core.Trace
+                     , Network.Skylark.Core.Update
   other-modules:       Network.Skylark.Core.Types
   ghc-options:         -Wall
   build-depends:       amazonka
+                     , amazonka-dynamodb
                      , base >= 4.7 && < 5
                      , basic-prelude
                      , exceptions

@@ -10,49 +10,22 @@
 -- Trace module for Skylark Core.
 
 module Network.Skylark.Core.Trace
-  ( Txt
-  , traceStderr
+  ( traceStderr
   , traceStdout
   , traceNull
   , traceDebug
   , traceInfo
   , traceWarn
   , traceError
-  , txt
   ) where
 
 import BasicPrelude
 import Control.Lens
 import Control.Monad.Logger
-import Data.Text
 import Data.Time.Clock
-import Data.Time.Format
-import Data.UUID
 import Formatting
 import Network.Skylark.Core.Types
-import Network.Wai
 import System.Log.FastLogger
-
-class Txt a where
-  txt :: a -> Text
-
-instance Txt String where
-  txt = pack
-
-instance Txt ByteString where
-  txt = decodeUtf8
-
-instance Txt UUID where
-  txt = toText
-
-instance Txt UTCTime where
-  txt time =
-    txt $ formatTime defaultTimeLocale "%FT%T%z" time
-
-instance Txt Request where
-  txt request =
-    sformat ("method=" % stext % " path=" % stext)
-      (txt $ requestMethod request) (txt $ rawPathInfo request)
 
 trace :: LoggerSet -> Log
 trace l _loc _source _level s = do

@@ -16,8 +16,18 @@ module Network.Skylark.Core.Maps
 import           BasicPrelude
 import           Control.Concurrent.STM
 import           Control.Lens
+import           Control.Monad.Reader
 import qualified Data.HashMap.Strict as M
-import           Network.Skylark.Core.Types
+
+type TVarMap k v      = TVar (HashMap k v)
+type GettingMap k v r = Getting (TVarMap k v) r (TVarMap k v)
+
+type MonadMap k r m =
+  ( Eq k
+  , Hashable k
+  , MonadReader r m
+  , MonadIO m
+  )
 
 withMap :: (MonadMap k r m) => GettingMap k v r -> (TVarMap k v -> (HashMap k v) -> STM b) -> m b
 withMap a action = do

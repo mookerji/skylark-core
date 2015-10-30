@@ -17,7 +17,6 @@
 module Network.Skylark.Core.Types where
 
 import BasicPrelude
-import Control.Concurrent.STM
 import Control.Lens
 import Control.Monad.Base
 import Control.Monad.Catch
@@ -25,19 +24,14 @@ import Control.Monad.Logger
 import Control.Monad.Reader
 import Control.Monad.Trans.AWS hiding ( LogLevel, Request )
 import Control.Monad.Trans.Resource
+import Data.Text
+import Data.Time.Clock
+import Data.Time.Format
 import Data.UUID
+import Formatting
 import Network.Wai
 
-type Log              = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
-type TVarMap k v      = TVar (HashMap k v)
-type GettingMap k v r = Getting (TVarMap k v) r (TVarMap k v)
-
-type MonadMap k r m =
-  ( Eq k
-  , Hashable k
-  , MonadReader r m
-  , MonadIO m
-  )
+type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
 newtype CoreT e m a = CoreT
   { unCoreT :: LoggingT (AWST' e m) a
@@ -100,3 +94,25 @@ instance Monad m => MonadReader r (CoreT r m) where
   ask     = CoreT ask
   local f = CoreT . local f . unCoreT
   reader  = CoreT . reader
+
+class Txt a where
+  txt :: a -> Text
+
+instance Txt String where
+  txt = pack
+
+instance Txt ByteString where
+  txt = decodeUtf8
+
+instance Txt UUID where
+  txt = toText
+
+instance Txt UTCTime where
+  txt time =
+    txt $ formatTime defaultTimeLocale "%FT%T%z" time
+
+instance Txt Request where
+  txt req =
+    sformat ("method=" % stext % " path=" % stext)
+      (txt $ requestMethod req) (txt $ rawPathInfo req)
+

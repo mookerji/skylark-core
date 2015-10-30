@@ -67,13 +67,13 @@ class Update a where
   openExprs _item = mempty
 
   closeExprs :: a -> [Text]
-  closeExprs _item = mempty
+  closeExprs = openExprs
 
   openValues :: a -> AttributeValueMap
   openValues _item = M.empty
 
   closeValues :: a -> AttributeValueMap
-  closeValues _item = M.empty
+  closeValues = openValues
 
 timestamp :: IO Text
 timestamp = do

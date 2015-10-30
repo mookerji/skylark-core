@@ -8,7 +8,8 @@
 -- Maps module for Skylark Core.
 
 module Network.Skylark.Core.Maps
-  ( get
+  ( GettingMap
+  , get
   , put
   , remove
   ) where

@@ -30,10 +30,10 @@ type MonadMap k r m =
   , MonadIO m
   )
 
-withMap :: (MonadMap k r m) => GettingMap k v r -> (TVarMap k v -> (HashMap k v) -> STM b) -> m b
+withMap :: (MonadMap k r m) => GettingMap k v r -> (TVarMap k v -> HashMap k v -> STM b) -> m b
 withMap a action = do
   b <- view a
-  liftIO $ atomically $ do
+  liftIO $ atomically $
     readTVar b >>= action b
 
 get :: (MonadMap k r m) => GettingMap k v r -> k -> m (Maybe v)

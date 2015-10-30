@@ -30,7 +30,7 @@ type AttributeValueMap = HashMap Text AttributeValue
 class Update a where
   update :: AWSConstraint e m => Text -> Text -> [Text] -> AttributeValueMap -> a -> m ()
   update table expr exprs values item = do
-    t <- liftIO $ timestamp
+    t <- liftIO timestamp
     void $ send $
       updateItem table &
         uiKey .~ key item &

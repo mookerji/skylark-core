@@ -24,8 +24,9 @@ import Control.Monad.Logger
 import Control.Monad.Reader
 import Control.Monad.Trans.AWS hiding ( LogLevel, Request )
 import Control.Monad.Trans.Resource
-import qualified Data.ByteString.Lazy as L
 import Data.Text
+import Data.Text.Lazy ( toStrict )
+import Data.Text.Lazy.Builder
 import Data.Time.Clock
 import Data.Time.Format
 import Data.UUID
@@ -105,8 +106,8 @@ instance Txt String where
 instance Txt ByteString where
   txt = decodeUtf8
 
-instance Txt L.ByteString where
-  txt = txt . L.toStrict
+instance Txt Builder where
+  txt = toStrict . toLazyText
 
 instance Txt UUID where
   txt = toText

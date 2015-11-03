@@ -13,8 +13,8 @@ module Network.Skylark.Core.Update
   , key
   , openExprs
   , closeExprs
-  , openValues
-  , closeValues
+  , openVals
+  , closeVals
   ) where
 
 import           BasicPrelude
@@ -25,43 +25,43 @@ import           Data.Time
 import           Network.AWS.DynamoDB
 import           Network.Skylark.Core.Types
 
-type AttributeValueMap = HashMap Text AttributeValue
+type AttrValMap = HashMap Text AttributeValue
 
 class Update a where
-  update :: AWSConstraint e m => Text -> Text -> [Text] -> AttributeValueMap -> a -> m ()
-  update table expr exprs values item = do
+  update :: AWSConstraint e m => Text -> Text -> [Text] -> AttrValMap -> a -> m ()
+  update table expr exprs vals item = do
     t <- liftIO timestamp
     void $ send $
       updateItem table &
         uiKey .~ key item &
         uiConditionExpression .~ Just expr &
         uiUpdateExpression .~ Just updateExpr &
-        uiExpressionAttributeValues .~ updateValues t where
+        uiExpressionAttributeValues .~ updateVals t where
           updateExpr = "SET " <> intercalate ", " exprs
-          updateValues t = values <> M.fromList
+          updateVals t = vals <> M.fromList
             [ (":t", attributeValue & avS .~ Just t)
             ]
 
   open :: AWSConstraint e m => Text -> a -> m ()
-  open table item = update table expr exprs values item where
+  open table item = update table expr exprs vals item where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :t"
     exprs = openExprs item <>
       [ "opened_at  = if_not_exists(opened_at, :t)"
       , "updated_at = if_not_exists(closed_at, :t)"
       ]
-    values = openValues item
+    vals = openVals item
 
   close :: AWSConstraint e m => Text -> a -> m ()
-  close table item = update table expr exprs values item where
+  close table item = update table expr exprs vals item where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :t"
     exprs = closeExprs item <>
       [ "opened_at  = if_not_exists(opened_at, :t)"
       , "updated_at = if_not_exists(closed_at, :t)"
       , "closed_at  = if_not_exists(closed_at, :t)"
       ]
-    values = closeValues item
+    vals = closeVals item
 
-  key :: a -> AttributeValueMap
+  key :: a -> AttrValMap
 
   openExprs :: a -> [Text]
   openExprs _item = mempty
@@ -69,11 +69,11 @@ class Update a where
   closeExprs :: a -> [Text]
   closeExprs = openExprs
 
-  openValues :: a -> AttributeValueMap
-  openValues _item = M.empty
+  openVals :: a -> AttrValMap
+  openVals _item = M.empty
 
-  closeValues :: a -> AttributeValueMap
-  closeValues = openValues
+  closeVals :: a -> AttrValMap
+  closeVals = openVals
 
 timestamp :: IO Text
 timestamp = do

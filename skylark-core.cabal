@@ -23,6 +23,7 @@ library
                      , amazonka-dynamodb
                      , base >= 4.7 && < 5
                      , basic-prelude
+                     , bytestring
                      , exceptions
                      , fast-logger
                      , formatting

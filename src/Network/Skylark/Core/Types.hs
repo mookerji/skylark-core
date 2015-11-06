@@ -1,3 +1,4 @@
+{-# OPTIONS  -fno-warn-orphans          #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ConstraintKinds            #-}
@@ -103,6 +104,12 @@ instance MonadRandom m => MonadRandom (CoreT r m) where
   getRandom   = lift getRandom
   getRandomR  = lift . getRandomR
   getRandoms  = lift getRandoms
+  getRandomRs = lift . getRandomRs
+
+instance MonadRandom m => MonadRandom (ResourceT m) where
+  getRandom   = lift getRandom
+  getRandoms  = lift getRandoms
+  getRandomR  = lift . getRandomR
   getRandomRs = lift . getRandomRs
 
 class Txt a where

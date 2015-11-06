@@ -7,7 +7,8 @@
 -- Update module for Skylark Core.
 
 module Network.Skylark.Core.Update
-  ( Update
+  ( AttributeValueMap
+  , Update
   , open
   , close
   , key
@@ -25,10 +26,10 @@ import           Data.Time
 import           Network.AWS.DynamoDB
 import           Network.Skylark.Core.Types
 
-type AttrValMap = HashMap Text AttributeValue
+type AttributeValueMap = HashMap Text AttributeValue
 
 class Update a where
-  update :: AWSConstraint e m => Text -> Text -> [Text] -> AttrValMap -> a -> m ()
+  update :: AWSConstraint e m => Text -> Text -> [Text] -> AttributeValueMap -> a -> m ()
   update table expr exprs vals item = do
     t <- liftIO timestamp
     void $ send $
@@ -61,7 +62,7 @@ class Update a where
       ]
     vals = closeVals item
 
-  key :: a -> AttrValMap
+  key :: a -> AttributeValueMap
 
   openExprs :: a -> [Text]
   openExprs _item = mempty
@@ -69,10 +70,10 @@ class Update a where
   closeExprs :: a -> [Text]
   closeExprs = openExprs
 
-  openVals :: a -> AttrValMap
+  openVals :: a -> AttributeValueMap
   openVals _item = M.empty
 
-  closeVals :: a -> AttrValMap
+  closeVals :: a -> AttributeValueMap
   closeVals = openVals
 
 timestamp :: IO Text

@@ -29,6 +29,7 @@ library
                      , lens
                      , monad-control
                      , monad-logger
+                     , MonadRandom
                      , mtl
                      , resourcet
                      , stm

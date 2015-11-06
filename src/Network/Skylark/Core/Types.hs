@@ -21,6 +21,7 @@ import Control.Lens
 import Control.Monad.Base
 import Control.Monad.Catch
 import Control.Monad.Logger
+import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Trans.AWS hiding ( LogLevel, Request )
 import Control.Monad.Trans.Resource
@@ -51,6 +52,7 @@ type MonadCore e m =
   ( AWSConstraint e m
   , HasCtx e
   , MonadLogger m
+  , MonadRandom m
   )
 
 data Ctx = Ctx
@@ -96,6 +98,12 @@ instance Monad m => MonadReader r (CoreT r m) where
   ask     = CoreT ask
   local f = CoreT . local f . unCoreT
   reader  = CoreT . reader
+
+instance MonadRandom m => MonadRandom (CoreT r m) where
+  getRandom   = lift getRandom
+  getRandomR  = lift . getRandomR
+  getRandoms  = lift getRandoms
+  getRandomRs = lift . getRandomRs
 
 class Txt a where
   txt :: a -> Text

@@ -109,6 +109,15 @@ instance Txt ByteString where
 instance Txt Builder where
   txt = toStrict . toLazyText
 
+instance Txt Double where
+  txt = show
+
+instance Txt Word8 where
+  txt = show
+
+instance Txt Word32 where
+  txt = show
+
 instance Txt UUID where
   txt = toText
 

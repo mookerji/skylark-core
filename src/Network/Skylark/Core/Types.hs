@@ -57,7 +57,8 @@ type MonadCore e m =
   )
 
 data Ctx = Ctx
-  { _ctxName       :: Text
+  { _ctxEnv        :: Env
+  , _ctxName       :: Text
   , _ctxVersion    :: Text
   , _ctxTag        :: Text
   , _ctxLogLevel   :: LogLevel
@@ -66,25 +67,29 @@ data Ctx = Ctx
   }
 
 class HasEnv a => HasCtx a where
-  context :: Lens' a Ctx
+  context       :: Lens' a Ctx
 
-  ctxName :: Lens' a Text
-  ctxName = context . lens _ctxName (\s a -> s { _ctxName = a } )
-
-  ctxVersion :: Lens' a Text
-  ctxVersion = context . lens _ctxVersion (\s a -> s { _ctxVersion = a } )
-
-  ctxTag :: Lens' a Text
-  ctxTag = context . lens _ctxTag (\s a -> s { _ctxTag = a } )
-
-  ctxLogLevel :: Lens' a LogLevel
-  ctxLogLevel = context . lens _ctxLogLevel (\s a -> s { _ctxLogLevel = a } )
-
-  ctxRequest :: Lens' a Request
-  ctxRequest = context . lens _ctxRequest (\s a -> s { _ctxRequest = a } )
-
+  ctxEnv        :: Lens' a Env
+  ctxName       :: Lens' a Text
+  ctxVersion    :: Lens' a Text
+  ctxTag        :: Lens' a Text
+  ctxLogLevel   :: Lens' a LogLevel
+  ctxRequest    :: Lens' a Request
   ctxSessionUid :: Lens' a UUID
+
+  ctxEnv        = context . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
+  ctxName       = context . lens _ctxName       (\s a -> s { _ctxName = a } )
+  ctxVersion    = context . lens _ctxVersion    (\s a -> s { _ctxVersion = a } )
+  ctxTag        = context . lens _ctxTag        (\s a -> s { _ctxTag = a } )
+  ctxLogLevel   = context . lens _ctxLogLevel   (\s a -> s { _ctxLogLevel = a } )
+  ctxRequest    = context . lens _ctxRequest    (\s a -> s { _ctxRequest = a } )
   ctxSessionUid = context . lens _ctxSessionUid (\s a -> s { _ctxSessionUid = a } )
+
+instance HasCtx Ctx where
+  context = id
+
+instance HasEnv Ctx where
+  environment = ctxEnv
 
 instance MonadBase b m => MonadBase b (CoreT r m) where
   liftBase = liftBaseDefault
@@ -111,6 +116,12 @@ instance MonadRandom m => MonadRandom (ResourceT m) where
   getRandoms  = lift getRandoms
   getRandomR  = lift . getRandomR
   getRandomRs = lift . getRandomRs
+
+type MonadMap k m =
+  ( Eq k
+  , Hashable k
+  , MonadIO m
+  )
 
 class Txt a where
   txt :: a -> Text

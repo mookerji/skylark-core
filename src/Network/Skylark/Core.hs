@@ -10,20 +10,13 @@ module Network.Skylark.Core
   ( module Network.Skylark.Core.Types
   , runResourceT
   , runCoreT
-  , runCoreT'
   ) where
 
-import BasicPrelude
+import Control.Lens
 import Control.Monad.Logger
 import Control.Monad.Trans.AWS
-import Network.Skylark.Core.Trace
 import Network.Skylark.Core.Types
 
-runCoreT :: HasCtx r => r -> Log -> CoreT r m a -> m a
-runCoreT e l (CoreT m) =
-  runAWST e (runLoggingT m l)
-
-runCoreT' :: (MonadIO m, HasCtx e) => e -> CoreT e m a -> m a
-runCoreT' e action = do
-  trace <- liftIO traceStderr
-  runCoreT e trace action
+runCoreT :: HasCtx r => r -> CoreT r m a -> m a
+runCoreT e (CoreT m) =
+  runAWST e (runLoggingT m (e ^. ctxLog))

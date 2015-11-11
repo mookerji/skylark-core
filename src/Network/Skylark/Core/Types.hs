@@ -58,6 +58,7 @@ type MonadCore e m =
 
 data Ctx = Ctx
   { _ctxEnv        :: Env
+  , _ctxLog        :: Log
   , _ctxName       :: Text
   , _ctxVersion    :: Text
   , _ctxTag        :: Text
@@ -70,6 +71,7 @@ class HasEnv a => HasCtx a where
   context       :: Lens' a Ctx
 
   ctxEnv        :: Lens' a Env
+  ctxLog        :: Lens' a Log
   ctxName       :: Lens' a Text
   ctxVersion    :: Lens' a Text
   ctxTag        :: Lens' a Text
@@ -78,6 +80,7 @@ class HasEnv a => HasCtx a where
   ctxSessionUid :: Lens' a UUID
 
   ctxEnv        = context . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
+  ctxLog        = context . lens _ctxLog        (\s a -> s { _ctxLog = a } )
   ctxName       = context . lens _ctxName       (\s a -> s { _ctxName = a } )
   ctxVersion    = context . lens _ctxVersion    (\s a -> s { _ctxVersion = a } )
   ctxTag        = context . lens _ctxTag        (\s a -> s { _ctxTag = a } )

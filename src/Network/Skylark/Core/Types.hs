@@ -63,6 +63,7 @@ data Ctx = Ctx
   , _ctxVersion    :: Text
   , _ctxTag        :: Text
   , _ctxLogLevel   :: LogLevel
+  , _ctxJitterRate :: Double
   , _ctxRequest    :: Request
   , _ctxSessionUid :: UUID
   }
@@ -76,6 +77,7 @@ class HasEnv a => HasCtx a where
   ctxVersion    :: Lens' a Text
   ctxTag        :: Lens' a Text
   ctxLogLevel   :: Lens' a LogLevel
+  ctxJitterRate :: Lens' a Double
   ctxRequest    :: Lens' a Request
   ctxSessionUid :: Lens' a UUID
 
@@ -85,6 +87,7 @@ class HasEnv a => HasCtx a where
   ctxVersion    = context . lens _ctxVersion    (\s a -> s { _ctxVersion = a } )
   ctxTag        = context . lens _ctxTag        (\s a -> s { _ctxTag = a } )
   ctxLogLevel   = context . lens _ctxLogLevel   (\s a -> s { _ctxLogLevel = a } )
+  ctxJitterRate = context . lens _ctxJitterRate (\s a -> s { _ctxJitterRate = a } )
   ctxRequest    = context . lens _ctxRequest    (\s a -> s { _ctxRequest = a } )
   ctxSessionUid = context . lens _ctxSessionUid (\s a -> s { _ctxSessionUid = a } )
 

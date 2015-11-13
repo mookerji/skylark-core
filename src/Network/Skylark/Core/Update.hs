@@ -9,13 +9,14 @@
 module Network.Skylark.Core.Update
   ( AttributeValueMap
   , Update
-  , open
-  , close
+  , table
   , key
   , openExprs
-  , closeExprs
   , openVals
+  , closeExprs
   , closeVals
+  , open
+  , close
   ) where
 
 import           BasicPrelude
@@ -29,54 +30,51 @@ import           Network.Skylark.Core.Types
 type AttributeValueMap = HashMap Text AttributeValue
 
 class Update a where
-  update :: AWSConstraint e m => Text -> Text -> [Text] -> AttributeValueMap -> a -> m ()
-  update table expr exprs vals item = do
-    t <- liftIO timestamp
-    void $ send $
-      updateItem table &
-        uiKey .~ key item &
-        uiConditionExpression .~ Just expr &
-        uiUpdateExpression .~ Just updateExpr &
-        uiExpressionAttributeValues .~ updateVals t where
-          updateExpr = "SET " <> intercalate ", " exprs
-          updateVals t = vals <> M.fromList
-            [ (":t", attributeValue & avS .~ Just t)
-            ]
-
-  open :: AWSConstraint e m => Text -> a -> m ()
-  open table item = update table expr exprs vals item where
-    expr = "attribute_not_exists(updated_at) OR updated_at <= :t"
-    exprs = openExprs item <>
-      [ "opened_at  = if_not_exists(opened_at, :t)"
-      , "updated_at = if_not_exists(closed_at, :t)"
-      ]
-    vals = openVals item
-
-  close :: AWSConstraint e m => Text -> a -> m ()
-  close table item = update table expr exprs vals item where
-    expr = "attribute_not_exists(updated_at) OR updated_at <= :t"
-    exprs = closeExprs item <>
-      [ "opened_at  = if_not_exists(opened_at, :t)"
-      , "updated_at = if_not_exists(closed_at, :t)"
-      , "closed_at  = if_not_exists(closed_at, :t)"
-      ]
-    vals = closeVals item
-
-  key :: a -> AttributeValueMap
+  table :: a -> Text
+  key   :: a -> AttributeValueMap
 
   openExprs :: a -> [Text]
   openExprs _item = mempty
 
-  closeExprs :: a -> [Text]
-  closeExprs = openExprs
-
   openVals :: a -> AttributeValueMap
   openVals _item = M.empty
+
+  closeExprs :: a -> [Text]
+  closeExprs = openExprs
 
   closeVals :: a -> AttributeValueMap
   closeVals = openVals
 
-timestamp :: IO Text
-timestamp = do
-  t <- getCurrentTime
-  return $ txt $ formatTime defaultTimeLocale "%FT%T%z" t
+iso8601 :: UTCTime -> Text
+iso8601 = txt . formatTime defaultTimeLocale "%FT%T%z"
+
+update :: (AWSConstraint e m, Update a) => a -> UTCTime -> Text -> [Text] -> AttributeValueMap -> m ()
+update item time expr exprs vals =
+  void $ send $ updateItem (table item) &
+    uiKey .~ key item &
+    uiConditionExpression .~ Just expr &
+    uiUpdateExpression .~ Just updateExpr &
+    uiExpressionAttributeValues .~ updateVals where
+      updateExpr = "SET " <> intercalate ", " exprs
+      updateVals = vals <> M.fromList
+        [ (":time", attributeValue & avS .~ Just (iso8601 time))
+        ]
+
+open :: (AWSConstraint e m, Update a) => a -> m ()
+open item =
+  update item undefined expr exprs (openVals item) where
+    expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
+    exprs = openExprs item <>
+      [ "opened_at  = if_not_exists(opened_at, :time)"
+      , "updated_at = if_not_exists(closed_at, :time)"
+      ]
+
+close :: (AWSConstraint e m, Update a) => a -> m ()
+close item =
+  update item undefined expr exprs (closeVals item) where
+    expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
+    exprs = closeExprs item <>
+      [ "opened_at  = if_not_exists(opened_at, :time)"
+      , "updated_at = if_not_exists(closed_at, :time)"
+      , "closed_at  = if_not_exists(closed_at, :time)"
+      ]

@@ -8,7 +8,7 @@
 
 module Network.Skylark.Core.Updates
   ( AttributeValueMap
-  , Updates
+  , Update
   , updateTable
   , updateTime
   , updateKey
@@ -30,7 +30,7 @@ import           Network.Skylark.Core.Types
 
 type AttributeValueMap = HashMap Text AttributeValue
 
-class Updates a where
+class Update a where
   updateTableName :: a -> Text
   updateTime      :: a -> UTCTime
   updateKey       :: a -> AttributeValueMap
@@ -50,7 +50,7 @@ class Updates a where
 iso8601 :: UTCTime -> Text
 iso8601 = txt . formatTime defaultTimeLocale "%FT%T%z"
 
-update :: (AWSConstraint e m, Updates a) => a -> Text -> [Text] -> AttributeValueMap -> m ()
+update :: (AWSConstraint e m, Update a) => a -> Text -> [Text] -> AttributeValueMap -> m ()
 update item expr exprs vals =
   void $ send $ updateItem (updateTableName item) &
     uiKey .~ updateKey item &
@@ -62,7 +62,7 @@ update item expr exprs vals =
         [ (":time", attributeValue & avS .~ Just (iso8601 $ updateTime item))
         ]
 
-open :: (AWSConstraint e m, Updates a) => a -> m ()
+open :: (AWSConstraint e m, Update a) => a -> m ()
 open item =
   update item expr exprs (openVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
@@ -71,7 +71,7 @@ open item =
       , "updated_at = if_not_exists(closed_at, :time)"
       ]
 
-close :: (AWSConstraint e m, Updates a) => a -> m ()
+close :: (AWSConstraint e m, Update a) => a -> m ()
 close item =
   update item expr exprs (closeVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"

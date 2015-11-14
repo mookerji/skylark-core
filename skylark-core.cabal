@@ -17,7 +17,7 @@ library
                      , Network.Skylark.Core.Maps
                      , Network.Skylark.Core.Timers
                      , Network.Skylark.Core.Trace
-                     , Network.Skylark.Core.Updates
+                     , Network.Skylark.Core.Upserts
   other-modules:       Network.Skylark.Core.Types
   ghc-options:         -Wall
   build-depends:       amazonka

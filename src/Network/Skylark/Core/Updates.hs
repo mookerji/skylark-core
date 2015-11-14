@@ -9,7 +9,7 @@
 module Network.Skylark.Core.Updates
   ( AttributeValueMap
   , Update
-  , updateTableName
+  , updateTable
   , updateTime
   , updateKey
   , openExprs
@@ -25,15 +25,15 @@ import           Control.Lens
 import           Control.Monad.Trans.AWS
 import qualified Data.HashMap.Strict as M
 import           Data.Time
-import           Network.AWS.DynamoDB
+import           Network.AWS.DynamoDB hiding ( updateTable )
 import           Network.Skylark.Core.Types
 
 type AttributeValueMap = HashMap Text AttributeValue
 
 class Update a where
-  updateTableName :: a -> Text
-  updateTime      :: a -> UTCTime
-  updateKey       :: a -> AttributeValueMap
+  updateTable :: a -> Text
+  updateTime  :: a -> UTCTime
+  updateKey   :: a -> AttributeValueMap
 
   openExprs :: a -> [Text]
   openExprs _item = mempty
@@ -52,7 +52,7 @@ iso8601 = txt . formatTime defaultTimeLocale "%FT%T%z"
 
 update :: (AWSConstraint e m, Update a) => a -> Text -> [Text] -> AttributeValueMap -> m ()
 update item expr exprs vals =
-  void $ send $ updateItem (updateTableName item) &
+  void $ send $ updateItem (updateTable item) &
     uiKey .~ updateKey item &
     uiConditionExpression .~ Just expr &
     uiUpdateExpression .~ Just updateExpr &

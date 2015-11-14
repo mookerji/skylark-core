@@ -31,6 +31,7 @@ type AttributeValueMap = HashMap Text AttributeValue
 
 class Update a where
   table :: a -> Text
+  time  :: a -> UTCTime
   key   :: a -> AttributeValueMap
 
   openExprs :: a -> [Text]
@@ -48,8 +49,8 @@ class Update a where
 iso8601 :: UTCTime -> Text
 iso8601 = txt . formatTime defaultTimeLocale "%FT%T%z"
 
-update :: (AWSConstraint e m, Update a) => a -> UTCTime -> Text -> [Text] -> AttributeValueMap -> m ()
-update item time expr exprs vals =
+update :: (AWSConstraint e m, Update a) => a -> Text -> [Text] -> AttributeValueMap -> m ()
+update item expr exprs vals =
   void $ send $ updateItem (table item) &
     uiKey .~ key item &
     uiConditionExpression .~ Just expr &
@@ -57,21 +58,21 @@ update item time expr exprs vals =
     uiExpressionAttributeValues .~ updateVals where
       updateExpr = "SET " <> intercalate ", " exprs
       updateVals = vals <> M.fromList
-        [ (":time", attributeValue & avS .~ Just (iso8601 time))
+        [ (":time", attributeValue & avS .~ Just (iso8601 $ time item))
         ]
 
-open :: (AWSConstraint e m, Update a) => a -> UTCTime -> m ()
-open item time =
-  update item time expr exprs (openVals item) where
+open :: (AWSConstraint e m, Update a) => a -> m ()
+open item =
+  update item expr exprs (openVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
     exprs = openExprs item <>
       [ "opened_at  = if_not_exists(opened_at, :time)"
       , "updated_at = if_not_exists(closed_at, :time)"
       ]
 
-close :: (AWSConstraint e m, Update a) => a -> UTCTime -> m ()
-close item time =
-  update item time expr exprs (closeVals item) where
+close :: (AWSConstraint e m, Update a) => a -> m ()
+close item =
+  update item expr exprs (closeVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
     exprs = closeExprs item <>
       [ "opened_at  = if_not_exists(opened_at, :time)"

@@ -1,17 +1,17 @@
 -- |
--- Module:      Network.Skylark.Core.Update
+-- Module:      Network.Skylark.Core.Updates
 -- Copyright:   (c) 2015 Mark Fine
 -- License:     BSD3
 -- Maintainer:  Mark Fine <mark@swift-nav.com>
 --
--- Update module for Skylark Core.
+-- Updates module for Skylark Core.
 
-module Network.Skylark.Core.Update
+module Network.Skylark.Core.Updates
   ( AttributeValueMap
-  , Update
-  , table
-  , time
-  , key
+  , Updates
+  , updateTable
+  , updateTime
+  , updateKey
   , openExprs
   , openVals
   , closeExprs
@@ -30,10 +30,10 @@ import           Network.Skylark.Core.Types
 
 type AttributeValueMap = HashMap Text AttributeValue
 
-class Update a where
-  table :: a -> Text
-  time  :: a -> UTCTime
-  key   :: a -> AttributeValueMap
+class Updates a where
+  updateTableName :: a -> Text
+  updateTime      :: a -> UTCTime
+  updateKey       :: a -> AttributeValueMap
 
   openExprs :: a -> [Text]
   openExprs _item = mempty
@@ -50,19 +50,19 @@ class Update a where
 iso8601 :: UTCTime -> Text
 iso8601 = txt . formatTime defaultTimeLocale "%FT%T%z"
 
-update :: (AWSConstraint e m, Update a) => a -> Text -> [Text] -> AttributeValueMap -> m ()
+update :: (AWSConstraint e m, Updates a) => a -> Text -> [Text] -> AttributeValueMap -> m ()
 update item expr exprs vals =
-  void $ send $ updateItem (table item) &
-    uiKey .~ key item &
+  void $ send $ updateItem (updateTableName item) &
+    uiKey .~ updateKey item &
     uiConditionExpression .~ Just expr &
     uiUpdateExpression .~ Just updateExpr &
     uiExpressionAttributeValues .~ updateVals where
       updateExpr = "SET " <> intercalate ", " exprs
       updateVals = vals <> M.fromList
-        [ (":time", attributeValue & avS .~ Just (iso8601 $ time item))
+        [ (":time", attributeValue & avS .~ Just (iso8601 $ updateTime item))
         ]
 
-open :: (AWSConstraint e m, Update a) => a -> m ()
+open :: (AWSConstraint e m, Updates a) => a -> m ()
 open item =
   update item expr exprs (openVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
@@ -71,7 +71,7 @@ open item =
       , "updated_at = if_not_exists(closed_at, :time)"
       ]
 
-close :: (AWSConstraint e m, Update a) => a -> m ()
+close :: (AWSConstraint e m, Updates a) => a -> m ()
 close item =
   update item expr exprs (closeVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"

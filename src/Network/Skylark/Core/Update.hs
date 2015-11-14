@@ -60,18 +60,18 @@ update item time expr exprs vals =
         [ (":time", attributeValue & avS .~ Just (iso8601 time))
         ]
 
-open :: (AWSConstraint e m, Update a) => a -> m ()
-open item =
-  update item undefined expr exprs (openVals item) where
+open :: (AWSConstraint e m, Update a) => a -> UTCTime -> m ()
+open item time =
+  update item time expr exprs (openVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
     exprs = openExprs item <>
       [ "opened_at  = if_not_exists(opened_at, :time)"
       , "updated_at = if_not_exists(closed_at, :time)"
       ]
 
-close :: (AWSConstraint e m, Update a) => a -> m ()
-close item =
-  update item undefined expr exprs (closeVals item) where
+close :: (AWSConstraint e m, Update a) => a -> UTCTime -> m ()
+close item time =
+  update item time expr exprs (closeVals item) where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
     exprs = closeExprs item <>
       [ "opened_at  = if_not_exists(opened_at, :time)"

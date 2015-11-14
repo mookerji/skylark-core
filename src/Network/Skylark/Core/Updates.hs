@@ -9,7 +9,7 @@
 module Network.Skylark.Core.Updates
   ( AttributeValueMap
   , Update
-  , updateTable
+  , updateTableName
   , updateTime
   , updateKey
   , openExprs

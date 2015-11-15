@@ -136,10 +136,8 @@ data Upsert = Upsert
   { _upsertTable :: Text
   , _upsertTime  :: UTCTime
   , _upsertKey   :: AttributeValueMap
-  , _openExprs   :: [Text]
-  , _closeExprs  :: [Text]
-  , _openVals    :: AttributeValueMap
-  , _closeVals   :: AttributeValueMap
+  , _upsertExprs :: [Text]
+  , _upsertVals  :: AttributeValueMap
   } deriving ( Eq, Show )
 
 class HasUpsert a where
@@ -148,18 +146,14 @@ class HasUpsert a where
   upsertTable :: Lens' a Text
   upsertTime  :: Lens' a UTCTime
   upsertKey   :: Lens' a AttributeValueMap
-  openExprs   :: Lens' a [Text]
-  closeExprs  :: Lens' a [Text]
-  openVals    :: Lens' a AttributeValueMap
-  closeVals   :: Lens' a AttributeValueMap
+  upsertExprs :: Lens' a [Text]
+  upsertVals  :: Lens' a AttributeValueMap
 
   upsertTable = upsert . lens _upsertTable (\s a -> s { _upsertTable = a } )
   upsertTime  = upsert . lens _upsertTime  (\s a -> s { _upsertTime = a } )
   upsertKey   = upsert . lens _upsertKey   (\s a -> s { _upsertKey = a } )
-  openExprs   = upsert . lens _openExprs   (\s a -> s { _openExprs = a } )
-  closeExprs  = upsert . lens _closeExprs  (\s a -> s { _closeExprs = a } )
-  openVals    = upsert . lens _openVals    (\s a -> s { _openVals = a } )
-  closeVals   = upsert . lens _closeVals   (\s a -> s { _closeVals = a } )
+  upsertExprs = upsert . lens _upsertExprs (\s a -> s { _upsertExprs = a } )
+  upsertVals  = upsert . lens _upsertVals  (\s a -> s { _upsertVals = a } )
 
 type MonadUpsert e m a =
   ( AWSConstraint e m

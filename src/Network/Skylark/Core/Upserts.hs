@@ -22,32 +22,32 @@ import           Network.Skylark.Core.Types
 iso8601 :: UTCTime -> Text
 iso8601 = txt . formatTime defaultTimeLocale "%FT%T%z"
 
-update :: MonadUpsert e m a => a -> Text -> [Text] -> AttributeValueMap -> m ()
-update item expr exprs vals =
+update :: MonadUpsert e m a => a -> Text -> [Text] -> m ()
+update item expr exprs =
   void $ send $ updateItem (item ^. upsertTable) &
     uiKey .~ item ^. upsertKey &
     uiConditionExpression .~ Just expr &
     uiUpdateExpression .~ Just updateExpr &
     uiExpressionAttributeValues .~ updateVals where
       updateExpr = "SET " <> intercalate ", " exprs
-      updateVals = vals <> M.fromList
+      updateVals = item ^. upsertVals <> M.fromList
         [ (":time", attributeValue & avS .~ Just (iso8601 $ item ^. upsertTime))
         ]
 
 open :: MonadUpsert e m a => a -> m ()
 open item =
-  update item expr exprs (item ^. openVals) where
+  update item expr exprs where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
-    exprs = item ^. openExprs <>
+    exprs = item ^. upsertExprs <>
       [ "opened_at  = if_not_exists(opened_at, :time)"
       , "updated_at = if_not_exists(closed_at, :time)"
       ]
 
 close :: MonadUpsert e m a => a -> m ()
 close item =
-  update item expr exprs (item ^. closeVals) where
+  update item expr exprs where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
-    exprs = item ^. closeExprs <>
+    exprs = item ^. upsertExprs <>
       [ "opened_at  = if_not_exists(opened_at, :time)"
       , "updated_at = if_not_exists(closed_at, :time)"
       , "closed_at  = if_not_exists(closed_at, :time)"

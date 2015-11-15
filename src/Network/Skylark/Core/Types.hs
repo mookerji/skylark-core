@@ -24,7 +24,7 @@ import Control.Monad.Catch
 import Control.Monad.Logger
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.Trans.AWS hiding ( LogLevel, Request )
+import Control.Monad.Trans.AWS hiding ( LogLevel )
 import Control.Monad.Trans.Resource
 import Data.Text
 import Data.Text.Lazy ( toStrict )
@@ -32,9 +32,7 @@ import Data.Text.Lazy.Builder
 import Data.Time.Clock
 import Data.Time.Format
 import Data.UUID
-import Formatting
 import Network.AWS.DynamoDB
-import Network.Wai
 
 type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
@@ -65,7 +63,6 @@ data Ctx = Ctx
   , _ctxTag        :: Text
   , _ctxLogLevel   :: LogLevel
   , _ctxJitterRate :: Double
-  , _ctxRequest    :: Request
   , _ctxSessionUid :: UUID
   }
 
@@ -79,7 +76,6 @@ class HasEnv a => HasCtx a where
   ctxTag        :: Lens' a Text
   ctxLogLevel   :: Lens' a LogLevel
   ctxJitterRate :: Lens' a Double
-  ctxRequest    :: Lens' a Request
   ctxSessionUid :: Lens' a UUID
 
   ctxEnv        = context . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
@@ -89,7 +85,6 @@ class HasEnv a => HasCtx a where
   ctxTag        = context . lens _ctxTag        (\s a -> s { _ctxTag = a } )
   ctxLogLevel   = context . lens _ctxLogLevel   (\s a -> s { _ctxLogLevel = a } )
   ctxJitterRate = context . lens _ctxJitterRate (\s a -> s { _ctxJitterRate = a } )
-  ctxRequest    = context . lens _ctxRequest    (\s a -> s { _ctxRequest = a } )
   ctxSessionUid = context . lens _ctxSessionUid (\s a -> s { _ctxSessionUid = a } )
 
 instance HasCtx Ctx where
@@ -187,9 +182,3 @@ instance Txt UUID where
 instance Txt UTCTime where
   txt time =
     txt $ formatTime defaultTimeLocale "%FT%T%z" time
-
-instance Txt Request where
-  txt req =
-    sformat ("method=" % stext % " path=" % stext)
-      (txt $ requestMethod req) (txt $ rawPathInfo req)
-

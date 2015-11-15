@@ -54,12 +54,11 @@ traceLevel level logN s = do
     name <- view ctxName
     version <- view ctxVersion
     tag <- view ctxTag
-    request <- view ctxRequest
     sessionUid <- view ctxSessionUid
     logN $ sformat
-      (stext % " name=" % stext % " v=" % stext % " t=" % stext % " " %
+      (stext % " name=" % stext % " v=" % stext % " t=" %
        stext % " session=" % stext % " " % stext % "\n")
-      (txt time) name version tag (txt request) (txt sessionUid) s
+      (txt time) name version tag (txt sessionUid) s
 
 traceDebug :: MonadCore e m => Text -> m ()
 traceDebug = traceLevel LevelDebug logDebugN

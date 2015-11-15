@@ -15,12 +15,8 @@ import           BasicPrelude
 import           Control.Lens
 import           Control.Monad.Trans.AWS
 import qualified Data.HashMap.Strict as M
-import           Data.Time
 import           Network.AWS.DynamoDB
 import           Network.Skylark.Core.Types
-
-iso8601 :: UTCTime -> Text
-iso8601 = txt . formatTime defaultTimeLocale "%FT%T%z"
 
 update :: MonadUpsert e m a => a -> Text -> [Text] -> m ()
 update item expr exprs =
@@ -31,7 +27,7 @@ update item expr exprs =
     uiExpressionAttributeValues .~ updateVals where
       updateExpr = "SET " <> intercalate ", " exprs
       updateVals = item ^. upsertVals <> M.fromList
-        [ (":time", attributeValue & avS .~ Just (iso8601 $ item ^. upsertTime))
+        [ (":time", attributeValue & avS .~ Just (txt $ item ^. upsertTime))
         ]
 
 open :: MonadUpsert e m a => a -> m ()

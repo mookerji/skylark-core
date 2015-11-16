@@ -10,6 +10,7 @@ module Network.Skylark.Core.Maps
   ( get
   , put
   , remove
+  , list
   ) where
 
 import           Control.Concurrent.STM
@@ -34,3 +35,9 @@ remove m k =
   liftIO $ atomically $ do
     n <- readTVar m
     writeTVar m $ M.delete k n
+
+list :: MonadMap k m => TVar (HashMap k v) -> m [(k, v)]
+list m =
+  liftIO $ atomically $ do
+    n <- readTVar m
+    return $ M.toList n

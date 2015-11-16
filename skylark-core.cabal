@@ -18,7 +18,8 @@ library
                      , Network.Skylark.Core.Timers
                      , Network.Skylark.Core.Trace
                      , Network.Skylark.Core.Upserts
-  other-modules:       Network.Skylark.Core.Types
+  other-modules:       Network.Skylark.Core.Prelude
+                     , Network.Skylark.Core.Types
   ghc-options:         -Wall
   build-depends:       amazonka
                      , amazonka-dynamodb

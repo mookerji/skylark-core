@@ -19,11 +19,11 @@ module Network.Skylark.Core.Trace
   , traceError
   ) where
 
-import BasicPrelude
 import Control.Lens
 import Control.Monad.Logger
 import Data.Time.Clock
 import Formatting
+import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 import System.Log.FastLogger
 
@@ -55,10 +55,13 @@ traceLevel level logN s = do
     version <- view ctxVersion
     tag <- view ctxTag
     sessionUid <- view ctxSessionUid
+    preamble <- view ctxPreamble
     logN $ sformat
       (stext % " name=" % stext % " v=" % stext % " t=" %
        stext % " session=" % stext % " " % stext % "\n")
-      (txt time) name version tag (txt sessionUid) s
+      (txt time) name version tag (txt sessionUid) $
+      maybe' preamble s $ \preamble' ->
+        sformat (stext % " " % stext) preamble' s
 
 traceDebug :: MonadCore e m => Text -> m ()
 traceDebug = traceLevel LevelDebug logDebugN

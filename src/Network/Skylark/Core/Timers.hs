@@ -8,11 +8,11 @@
 
 module Network.Skylark.Core.Timers where
 
-import BasicPrelude
 import Control.Concurrent.STM
 import Control.Lens
 import Control.Monad.Random
 import Data.Time.Clock
+import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 
 -- | Jitter value by a random factor.

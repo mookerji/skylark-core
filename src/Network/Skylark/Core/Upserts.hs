@@ -11,11 +11,11 @@ module Network.Skylark.Core.Upserts
   , close
   ) where
 
-import           BasicPrelude
 import           Control.Lens
 import           Control.Monad.Trans.AWS
 import qualified Data.HashMap.Strict as M
 import           Network.AWS.DynamoDB
+import           Network.Skylark.Core.Prelude
 import           Network.Skylark.Core.Types
 
 update :: MonadUpsert e m a => a -> Text -> [Text] -> m ()

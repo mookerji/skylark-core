@@ -12,9 +12,9 @@ module Network.Skylark.Core.Maps
   , remove
   ) where
 
-import           BasicPrelude
 import           Control.Concurrent.STM
 import qualified Data.HashMap.Strict as M
+import           Network.Skylark.Core.Prelude
 import           Network.Skylark.Core.Types
 
 get :: MonadMap k m => TVar (HashMap k v) -> k -> m (Maybe v)

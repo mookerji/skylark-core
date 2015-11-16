@@ -51,17 +51,9 @@ traceLevel level logN s = do
   level' <- view ctxLogLevel
   unless (level < level') $ do
     time <- liftIO getCurrentTime
-    name <- view ctxName
-    version <- view ctxVersion
-    tag <- view ctxTag
-    sessionUid <- view ctxSessionUid
     preamble <- view ctxPreamble
-    logN $ sformat
-      (stext % " name=" % stext % " v=" % stext % " t=" %
-       stext % " session=" % stext % " " % stext % "\n")
-      (txt time) name version tag (txt sessionUid) $
-      maybe' preamble s $ \preamble' ->
-        sformat (stext % " " % stext) preamble' s
+    logN $ sformat (stext % " " % stext % " " % stext % "\n")
+      (txt time) preamble s
 
 traceDebug :: MonadCore e m => Text -> m ()
 traceDebug = traceLevel LevelDebug logDebugN

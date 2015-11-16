@@ -58,13 +58,9 @@ type MonadCore e m =
 data Ctx = Ctx
   { _ctxEnv        :: Env
   , _ctxLog        :: Log
-  , _ctxName       :: Text
-  , _ctxVersion    :: Text
-  , _ctxTag        :: Text
-  , _ctxPreamble   :: Maybe Text
   , _ctxLogLevel   :: LogLevel
+  , _ctxPreamble   :: Text
   , _ctxJitterRate :: Double
-  , _ctxSessionUid :: UUID
   }
 
 class HasEnv a => HasCtx a where
@@ -72,23 +68,15 @@ class HasEnv a => HasCtx a where
 
   ctxEnv        :: Lens' a Env
   ctxLog        :: Lens' a Log
-  ctxName       :: Lens' a Text
-  ctxVersion    :: Lens' a Text
-  ctxTag        :: Lens' a Text
-  ctxPreamble   :: Lens' a (Maybe Text)
   ctxLogLevel   :: Lens' a LogLevel
+  ctxPreamble   :: Lens' a Text
   ctxJitterRate :: Lens' a Double
-  ctxSessionUid :: Lens' a UUID
 
   ctxEnv        = context . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
   ctxLog        = context . lens _ctxLog        (\s a -> s { _ctxLog = a } )
-  ctxName       = context . lens _ctxName       (\s a -> s { _ctxName = a } )
-  ctxVersion    = context . lens _ctxVersion    (\s a -> s { _ctxVersion = a } )
-  ctxTag        = context . lens _ctxTag        (\s a -> s { _ctxTag = a } )
-  ctxPreamble   = context . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
   ctxLogLevel   = context . lens _ctxLogLevel   (\s a -> s { _ctxLogLevel = a } )
+  ctxPreamble   = context . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
   ctxJitterRate = context . lens _ctxJitterRate (\s a -> s { _ctxJitterRate = a } )
-  ctxSessionUid = context . lens _ctxSessionUid (\s a -> s { _ctxSessionUid = a } )
 
 instance HasCtx Ctx where
   context = id

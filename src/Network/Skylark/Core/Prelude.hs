@@ -8,10 +8,6 @@
 
 module Network.Skylark.Core.Prelude
   ( module BasicPrelude
-  , maybe'
   ) where
 
 import BasicPrelude
-
-maybe' :: Maybe a -> b -> (a -> b) -> b
-maybe' m b a = maybe b a m

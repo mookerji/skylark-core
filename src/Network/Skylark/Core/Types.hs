@@ -146,6 +146,20 @@ type MonadUpsert e m a =
   , HasUpsert a
   )
 
+data Receipt = Receipt
+  { _receiptUid  :: UUID
+  , _receiptTime :: UTCTime
+  } deriving ( Eq, Show )
+
+class HasReceipt a where
+  receipt :: Lens' a Receipt
+
+  receiptUid  :: Lens' a UUID
+  receiptTime :: Lens' a UTCTime
+
+  receiptUid  = receipt . lens _receiptUid  (\s a -> s { _receiptUid = a } )
+  receiptTime = receipt . lens _receiptTime (\s a -> s { _receiptTime = a } )
+
 class Txt a where
   txt :: a -> Text
 

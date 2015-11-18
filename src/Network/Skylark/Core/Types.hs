@@ -160,6 +160,9 @@ class HasReceipt a where
   receiptUid  = receipt . lens _receiptUid  (\s a -> s { _receiptUid = a } )
   receiptTime = receipt . lens _receiptTime (\s a -> s { _receiptTime = a } )
 
+instance HasReceipt Receipt where
+  receipt = id
+
 class Txt a where
   txt :: a -> Text
 

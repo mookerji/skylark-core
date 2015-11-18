@@ -15,6 +15,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Network.Skylark.Core
                      , Network.Skylark.Core.Maps
+                     , Network.Skylark.Core.Receipts
                      , Network.Skylark.Core.Timers
                      , Network.Skylark.Core.Trace
                      , Network.Skylark.Core.Upserts

@@ -29,7 +29,6 @@ import Data.Text
 import Data.Text.Lazy ( toStrict )
 import Data.Text.Lazy.Builder
 import Data.Time
-import Data.Time.Format
 import Data.UUID
 import Network.AWS.DynamoDB
 import Network.Skylark.Core.Prelude

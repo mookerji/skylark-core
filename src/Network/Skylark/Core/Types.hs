@@ -141,11 +141,6 @@ class HasUpsert a where
 instance HasUpsert Upsert where
   upsertId = id
 
-type MonadUpsert e m a =
-  ( AWSConstraint e m
-  , HasUpsert a
-  )
-
 data Receipt = Receipt
   { _receiptUid  :: UUID
   , _receiptTime :: UTCTime

@@ -12,15 +12,14 @@ module Network.Skylark.Core.Upserts
   ) where
 
 import           Control.Lens
-import           Control.Monad.Trans.AWS
 import qualified Data.HashMap.Strict as M
 import           Network.AWS.DynamoDB
 import           Network.Skylark.Core.Prelude
 import           Network.Skylark.Core.Types
 
-update :: MonadUpsert e m a => a -> Text -> [Text] -> m ()
+update :: HasUpsert a => a -> Text -> [Text] -> UpdateItem
 update item expr exprs =
-  void $ send $ updateItem (item ^. upsertTable) &
+  updateItem (item ^. upsertTable) &
     uiKey .~ item ^. upsertKey &
     uiConditionExpression .~ Just expr &
     uiUpdateExpression .~ Just updateExpr &
@@ -30,7 +29,7 @@ update item expr exprs =
         [ (":time", attributeValue & avS .~ Just (txt $ item ^. upsertTime))
         ]
 
-open :: MonadUpsert e m a => a -> m ()
+open :: HasUpsert a => a -> UpdateItem
 open item =
   update item expr exprs where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"
@@ -39,7 +38,7 @@ open item =
       , "updated_at = if_not_exists(closed_at, :time)"
       ]
 
-close :: MonadUpsert e m a => a -> m ()
+close :: HasUpsert a => a -> UpdateItem
 close item =
   update item expr exprs where
     expr = "attribute_not_exists(updated_at) OR updated_at <= :time"

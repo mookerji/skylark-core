@@ -21,7 +21,7 @@ module Network.Skylark.Core.Trace
 
 import Control.Lens
 import Control.Monad.Logger
-import Data.Time.Clock
+import Data.Time
 import Formatting
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types

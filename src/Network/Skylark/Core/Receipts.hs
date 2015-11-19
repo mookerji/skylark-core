@@ -11,7 +11,7 @@ module Network.Skylark.Core.Receipts
   ) where
 
 import Data.UUID.V4
-import Data.Time.Clock
+import Data.Time
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 

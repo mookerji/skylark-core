@@ -28,7 +28,7 @@ import Control.Monad.Trans.Resource
 import Data.Text
 import Data.Text.Lazy ( toStrict )
 import Data.Text.Lazy.Builder
-import Data.Time.Clock
+import Data.Time
 import Data.Time.Format
 import Data.UUID
 import Network.AWS.DynamoDB
@@ -56,11 +56,11 @@ type MonadCore e m =
   )
 
 data Ctx = Ctx
-  { _ctxEnv        :: Env
-  , _ctxLog        :: Log
-  , _ctxLogLevel   :: LogLevel
-  , _ctxPreamble   :: Text
-  , _ctxJitterRate :: Double
+  { _ctxEnv        :: !Env
+  , _ctxLog        :: !Log
+  , _ctxLogLevel   :: !LogLevel
+  , _ctxPreamble   :: !Text
+  , _ctxJitterRate :: !Double
   }
 
 class HasEnv a => HasCtx a where
@@ -118,11 +118,11 @@ type MonadMap k m =
 type AttributeValueMap = HashMap Text AttributeValue
 
 data Upsert = Upsert
-  { _upsertTable :: Text
-  , _upsertTime  :: UTCTime
-  , _upsertKey   :: AttributeValueMap
-  , _upsertExprs :: [Text]
-  , _upsertVals  :: AttributeValueMap
+  { _upsertTable :: !Text
+  , _upsertTime  :: !UTCTime
+  , _upsertKey   :: !AttributeValueMap
+  , _upsertExprs :: ![Text]
+  , _upsertVals  :: !AttributeValueMap
   } deriving ( Eq, Show )
 
 class HasUpsert a where
@@ -148,8 +148,8 @@ type MonadUpsert e m a =
   )
 
 data Receipt = Receipt
-  { _receiptUid  :: UUID
-  , _receiptTime :: UTCTime
+  { _receiptUid  :: !UUID
+  , _receiptTime :: !UTCTime
   } deriving ( Eq, Show )
 
 class HasReceipt a where

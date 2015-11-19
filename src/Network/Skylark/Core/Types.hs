@@ -64,22 +64,21 @@ data Ctx = Ctx
   }
 
 class HasEnv a => HasCtx a where
-  context       :: Lens' a Ctx
-
+  ctxId         :: Lens' a Ctx
   ctxEnv        :: Lens' a Env
   ctxLog        :: Lens' a Log
   ctxLogLevel   :: Lens' a LogLevel
   ctxPreamble   :: Lens' a Text
   ctxJitterRate :: Lens' a Double
 
-  ctxEnv        = context . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
-  ctxLog        = context . lens _ctxLog        (\s a -> s { _ctxLog = a } )
-  ctxLogLevel   = context . lens _ctxLogLevel   (\s a -> s { _ctxLogLevel = a } )
-  ctxPreamble   = context . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
-  ctxJitterRate = context . lens _ctxJitterRate (\s a -> s { _ctxJitterRate = a } )
+  ctxEnv        = ctxId . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
+  ctxLog        = ctxId . lens _ctxLog        (\s a -> s { _ctxLog = a } )
+  ctxLogLevel   = ctxId . lens _ctxLogLevel   (\s a -> s { _ctxLogLevel = a } )
+  ctxPreamble   = ctxId . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
+  ctxJitterRate = ctxId . lens _ctxJitterRate (\s a -> s { _ctxJitterRate = a } )
 
 instance HasCtx Ctx where
-  context = id
+  ctxId = id
 
 instance HasEnv Ctx where
   environment = ctxEnv
@@ -127,19 +126,21 @@ data Upsert = Upsert
   } deriving ( Eq, Show )
 
 class HasUpsert a where
-  upsert      :: Lens' a Upsert
-
+  upsertId    :: Lens' a Upsert
   upsertTable :: Lens' a Text
   upsertTime  :: Lens' a UTCTime
   upsertKey   :: Lens' a AttributeValueMap
   upsertExprs :: Lens' a [Text]
   upsertVals  :: Lens' a AttributeValueMap
 
-  upsertTable = upsert . lens _upsertTable (\s a -> s { _upsertTable = a } )
-  upsertTime  = upsert . lens _upsertTime  (\s a -> s { _upsertTime = a } )
-  upsertKey   = upsert . lens _upsertKey   (\s a -> s { _upsertKey = a } )
-  upsertExprs = upsert . lens _upsertExprs (\s a -> s { _upsertExprs = a } )
-  upsertVals  = upsert . lens _upsertVals  (\s a -> s { _upsertVals = a } )
+  upsertTable = upsertId . lens _upsertTable (\s a -> s { _upsertTable = a } )
+  upsertTime  = upsertId . lens _upsertTime  (\s a -> s { _upsertTime = a } )
+  upsertKey   = upsertId . lens _upsertKey   (\s a -> s { _upsertKey = a } )
+  upsertExprs = upsertId . lens _upsertExprs (\s a -> s { _upsertExprs = a } )
+  upsertVals  = upsertId . lens _upsertVals  (\s a -> s { _upsertVals = a } )
+
+instance HasUpsert Upsert where
+  upsertId = id
 
 type MonadUpsert e m a =
   ( AWSConstraint e m
@@ -152,16 +153,15 @@ data Receipt = Receipt
   } deriving ( Eq, Show )
 
 class HasReceipt a where
-  receipt :: Lens' a Receipt
-
+  receiptId   :: Lens' a Receipt
   receiptUid  :: Lens' a UUID
   receiptTime :: Lens' a UTCTime
 
-  receiptUid  = receipt . lens _receiptUid  (\s a -> s { _receiptUid = a } )
-  receiptTime = receipt . lens _receiptTime (\s a -> s { _receiptTime = a } )
+  receiptUid  = receiptId . lens _receiptUid  (\s a -> s { _receiptUid = a } )
+  receiptTime = receiptId . lens _receiptTime (\s a -> s { _receiptTime = a } )
 
 instance HasReceipt Receipt where
-  receipt = id
+  receiptId = id
 
 class Txt a where
   txt :: a -> Text

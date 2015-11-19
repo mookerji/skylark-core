@@ -6,7 +6,9 @@
 --
 -- Timers module for Skylark Core.
 
-module Network.Skylark.Core.Timers where
+module Network.Skylark.Core.Timers
+  ( whenExpires
+  ) where
 
 import Control.Lens
 import Control.Monad.Random
@@ -20,8 +22,8 @@ jitter :: MonadRandom m => Double -> Double -> m Double
 jitter v r = (* v) <$> getRandomR (1, 1 + r)
 
 -- | Check timer and update if elapsed, run action if expired.
-whenExpires' :: MonadCore e m => IORef UTCTime -> Double -> m () -> m()
-whenExpires' expires interval a = do
+whenExpires :: MonadCore e m => IORef UTCTime -> Double -> m () -> m()
+whenExpires expires interval a = do
   rate <- view ctxJitterRate
   interval' <- jitter interval rate
   expired <- liftIO $ do

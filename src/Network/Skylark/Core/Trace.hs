@@ -10,8 +10,8 @@
 -- Trace module for Skylark Core.
 
 module Network.Skylark.Core.Trace
-  ( traceStderr
-  , traceStdout
+  ( newStderrTrace
+  , newStdoutTrace
   , traceNull
   , traceDebug
   , traceInfo
@@ -32,13 +32,13 @@ trace l _loc _source _level s = do
   pushLogStr l s
   flushLogStr l
 
-traceStderr :: IO Log
-traceStderr = do
+newStderrTrace :: IO Log
+newStderrTrace = do
   l <- newStderrLoggerSet defaultBufSize
   return $ trace l
 
-traceStdout :: IO Log
-traceStdout = do
+newStdoutTrace :: IO Log
+newStdoutTrace = do
   l <- newStdoutLoggerSet defaultBufSize
   return $ trace l
 

@@ -7,7 +7,7 @@
 -- Receipts module for Skylark Core.
 
 module Network.Skylark.Core.Receipts
-  ( generate
+  ( newReceipt
   ) where
 
 import Data.UUID.V4
@@ -15,5 +15,5 @@ import Data.Time
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 
-generate :: IO Receipt
-generate = Receipt <$> nextRandom <*> getCurrentTime
+newReceipt :: IO Receipt
+newReceipt = Receipt <$> nextRandom <*> getCurrentTime

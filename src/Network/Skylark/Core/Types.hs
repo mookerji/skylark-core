@@ -141,19 +141,6 @@ class HasUpsert a where
 instance HasUpsert Upsert where
   upsertId = id
 
-newtype Receipt = Receipt
-  { _receiptTime :: UTCTime
-  } deriving ( Eq, Show )
-
-class HasReceipt a where
-  receiptId   :: Lens' a Receipt
-  receiptTime :: Lens' a UTCTime
-
-  receiptTime = receiptId . lens _receiptTime (\s a -> s { _receiptTime = a } )
-
-instance HasReceipt Receipt where
-  receiptId = id
-
 class Txt a where
   txt :: a -> Text
 

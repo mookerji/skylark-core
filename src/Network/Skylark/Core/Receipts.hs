@@ -10,10 +10,9 @@ module Network.Skylark.Core.Receipts
   ( newReceipt
   ) where
 
-import Data.UUID.V4
 import Data.Time
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 
 newReceipt :: IO Receipt
-newReceipt = Receipt <$> nextRandom <*> getCurrentTime
+newReceipt = Receipt <$> getCurrentTime

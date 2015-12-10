@@ -162,6 +162,9 @@ instance Txt Word8 where
 instance Txt Word32 where
   txt = show
 
+instance Txt Int32 where
+  txt = show
+
 instance Txt UUID where
   txt = toText
 

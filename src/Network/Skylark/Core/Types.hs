@@ -247,7 +247,7 @@ instance HasConf Conf where
 instance Default Conf where
   def = Conf
     { _confFile     = Just "/conf/dev.yaml"
-    , _confPort     = Just 3030
+    , _confPort     = Just 5000
     , _confTimeout  = Just 120
     , _confLogLevel = Just LevelInfo
     }
@@ -267,7 +267,7 @@ instance FromEnv Conf where
       envMaybe "SKYLARK_CONF_FILE" <*>
       envMaybe "SKYLARK_PORT"      <*>
       envMaybe "SKYLARK_TIMEOUT"   <*>
-      envMaybe "SKYLARK_LOGLEVEL"
+      envMaybe "SKYLARK_LOG_LEVEL"
 
 instance ToEnv Conf where
   toEnv Conf{..} = makeEnv

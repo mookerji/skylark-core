@@ -293,4 +293,4 @@ instance Monoid Conf where
     } where
       -- | Given a record field accessor. return the second non-Nothing
       -- Value for a record field.
-      merge f a b = getLast $! (mappend `on` (Last . f)) a b
+      merge f x y = getLast $! (mappend `on` (Last . f)) x y

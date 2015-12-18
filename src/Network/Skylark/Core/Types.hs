@@ -274,7 +274,7 @@ instance ToEnv Conf where
     [ "SKYLARK_CONF_FILE" .= _confFile
     , "SKYLARK_PORT"      .= _confPort
     , "SKYLARK_TIMEOUT"   .= _confTimeout
-    , "SKYLARK_LOGLEVEL"  .= _confLogLevel
+    , "SKYLARK_LOG_LEVEL" .= _confLogLevel
     ]
 
 instance Monoid Conf where

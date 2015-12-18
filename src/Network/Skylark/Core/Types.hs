@@ -290,10 +290,7 @@ instance Monoid Conf where
     , _confPort     = merge _confPort a b
     , _confTimeout  = merge _confTimeout a b
     , _confLogLevel = merge _confLogLevel a b
-    }
-
--- | Given a record field accessor. return the second non-Nothing
--- Value for a record field.
---
-merge :: (a -> Maybe b) -> a -> a -> Maybe b
-merge f a b = getLast $! (mappend `on` (Last . f)) a b
+    } where
+      -- | Given a record field accessor. return the second non-Nothing
+      -- Value for a record field.
+      merge f a b = getLast $! (mappend `on` (Last . f)) a b

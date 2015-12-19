@@ -1,12 +1,12 @@
 {-# OPTIONS  -fno-warn-orphans          #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 -- |
 -- Module:      Network.Skylark.Core.Types
@@ -18,26 +18,26 @@
 
 module Network.Skylark.Core.Types where
 
-import Control.Lens hiding ( (.=) )
+import Control.Lens                 hiding ((.=))
 import Control.Monad.Base
 import Control.Monad.Catch
 import Control.Monad.Logger
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.Trans.AWS hiding ( LogLevel )
+import Control.Monad.Trans.AWS      hiding (LogLevel)
 import Control.Monad.Trans.Resource
-import Data.Aeson hiding ( (.!=), (.=) )
+import Data.Aeson                   hiding ((.!=), (.=))
 import Data.Default
 import Data.Monoid
-import Data.Text ( pack, unpack )
-import Data.Text.Lazy ( toStrict )
-import Data.Text.Lazy.Builder hiding ( fromText )
+import Data.Text                    (pack, unpack)
+import Data.Text.Lazy               (toStrict)
+import Data.Text.Lazy.Builder       hiding (fromText)
 import Data.Time
 import Data.UUID
 import Network.AWS.DynamoDB
 import Network.Skylark.Core.Prelude
 import System.Envy
-import Text.Read ( readMaybe )
+import Text.Read                    (readMaybe)
 
 type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 

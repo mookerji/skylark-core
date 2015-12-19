@@ -1,14 +1,10 @@
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-
 -- |
--- Module:      Network.Skylark.Core.Config
+-- Module:      Network.Skylark.Core.Conf
 -- Copyright:   (c) 2015 Mark Fine
 -- License:     BSD3
 -- Maintainer:  Mark Fine <mark@swift-nav.com>
 --
--- Config module for Skylark Core.
+-- Conf module for Skylark Core.
 
 module Network.Skylark.Core.Conf
   ( getCompleteConf
@@ -19,10 +15,10 @@ module Network.Skylark.Core.Conf
   ) where
 
 import Control.Monad.Logger
-import Data.Aeson
+import Data.Aeson                   hiding (decode)
 import Data.Default
 import Data.Word
-import Data.Yaml hiding (Parser)
+import Data.Yaml                    hiding (Parser, decode)
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 import Options.Applicative
@@ -107,16 +103,10 @@ getDataFile f =
 -- configuration file, command line options, and the environmental
 -- configuration. Accepts the last non-Maybe value in each
 --
-getCompleteConf :: forall a. (Monoid a, FromEnv a, FromJSON a, Default a)
-                => ParserInfo a         -- ^ Command line parser for a type.
-                -> (a -> Maybe String)  -- ^ Accessor method for a
-                                        -- configuration file.
-                -> IO (Either String a) -- ^ Either an error string
-                                        -- or configuration.
+getCompleteConf :: (Monoid a, FromEnv a, Default a, FromJSON a) => ParserInfo a -> (a -> Maybe String) -> IO a
 getCompleteConf p conf = do
-  e <- decodeEnv :: IO (Either String a)
-  let rest x = do opt <- options p
-                  d <- def
-                  f <- getDataFile $ fromMaybe "" $ conf (d <> opt <> x)
-                  return $ Right (d <> f <> opt <> x)
-  either (return . Left) rest e
+  e <- decode
+  o <- options p
+  d <- def
+  f <- maybe (return Nothing) getDataFile $ conf $ d <> o <> fromMaybe mempty e
+  return $ d <> fromMaybe mempty f <> o <> fromMaybe mempty e

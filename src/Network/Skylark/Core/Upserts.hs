@@ -12,7 +12,7 @@ module Network.Skylark.Core.Upserts
   ) where
 
 import           Control.Lens
-import qualified Data.HashMap.Strict as M
+import qualified Data.HashMap.Strict          as M
 import           Network.AWS.DynamoDB
 import           Network.Skylark.Core.Prelude
 import           Network.Skylark.Core.Types

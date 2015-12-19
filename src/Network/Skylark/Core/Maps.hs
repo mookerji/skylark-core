@@ -14,7 +14,7 @@ module Network.Skylark.Core.Maps
   ) where
 
 import           Control.Concurrent.STM
-import qualified Data.HashMap.Strict as M
+import qualified Data.HashMap.Strict          as M
 import           Network.Skylark.Core.Prelude
 import           Network.Skylark.Core.Types
 

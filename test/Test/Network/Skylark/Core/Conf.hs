@@ -1,9 +1,8 @@
-{-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS  -fno-warn-orphans          #-}
 
 -- |
--- Module:      Test.Network.Skylark.Core.Config
+-- Module:      Test.Network.Skylark.Core.Conf
 -- Copyright:   (c) 2015 Mark Fine
 -- License:     BSD3
 -- Maintainer:  Mark Fine <mark@swift-nav.com>
@@ -15,7 +14,7 @@ module Test.Network.Skylark.Core.Conf
   ) where
 
 import BasicPrelude
-import Control.Lens hiding ((.=))
+import Control.Lens                   hiding ((.=))
 import Control.Monad.Logger
 import Data.Default
 import Network.Skylark.Core.Conf
@@ -26,6 +25,8 @@ import System.Envy
 import Test.Network.Skylark.Core.Test
 import Test.Tasty
 import Test.Tasty.HUnit
+
+{-# ANN module ("HLint: ignore Reduce duplication"::String) #-}
 
 parse :: [String] -> Maybe Conf
 parse = getParseResult . execParserPure (prefs idm) (parser parseConf)
@@ -96,10 +97,10 @@ testEnv :: TestTree
 testEnv =
   testGroup "Environmental configuration unit test"
     [ testCase "Empty configuration" $ do
-        unsetEnv "SKYLARK_CONFFILE"
+        unsetEnv "SKYLARK_CONF_FILE"
         unsetEnv "SKYLARK_PORT"
         unsetEnv "SKYLARK_TIMEOUT"
-        unsetEnv "SKYLARK_LOGLEVEL"
+        unsetEnv "SKYLARK_LOG_LEVEL"
         c <- decodeEnv :: IO (Either String Conf)
         c @?= Right Conf { _confFile     = Nothing
                          , _confPort     = Nothing
@@ -107,10 +108,10 @@ testEnv =
                          , _confLogLevel = Nothing
                          }
     , testCase "Port and Timeout" $ do
-        unsetEnv "SKYLARK_CONFFILE"
+        unsetEnv "SKYLARK_CONF_FILE"
         setEnv "SKYLARK_PORT" "1"
         setEnv "SKYLARK_TIMEOUT" "1"
-        unsetEnv "SKYLARK_LOGLEVEL"
+        unsetEnv "SKYLARK_LOG_LEVEL"
         c <- decodeEnv :: IO (Either String Conf)
         c @?= Right Conf { _confFile     = Nothing
                          , _confPort     = Just 1
@@ -118,10 +119,10 @@ testEnv =
                          , _confLogLevel = Nothing
                          }
      , testCase "String value" $ do
-        setEnv "SKYLARK_CONFFILE" "l"
+        setEnv "SKYLARK_CONF_FILE" "l"
         unsetEnv "SKYLARK_PORT"
         setEnv "SKYLARK_TIMEOUT" "1"
-        unsetEnv "SKYLARK_LOGLEVEL"
+        unsetEnv "SKYLARK_LOG_LEVEL"
         c <- decodeEnv :: IO (Either String Conf)
         c @?= Right Conf { _confFile     = Just "l"
                          , _confPort     = Nothing
@@ -129,10 +130,10 @@ testEnv =
                          , _confLogLevel = Nothing
                          }
      , testCase "LevelInfo" $ do
-        unsetEnv "SKYLARK_CONFFILE"
+        unsetEnv "SKYLARK_CONF_FILE"
         unsetEnv "SKYLARK_PORT"
         unsetEnv "SKYLARK_TIMEOUT"
-        setEnv "SKYLARK_LOGLEVEL" "info"
+        setEnv "SKYLARK_LOG_LEVEL" "info"
         c <- decodeEnv :: IO (Either String Conf)
         c @?= Right Conf { _confFile     = Nothing
                          , _confPort     = Nothing
@@ -140,10 +141,10 @@ testEnv =
                          , _confLogLevel = Just LevelInfo
                          }
      , testCase "LevelOther" $ do
-        unsetEnv "SKYLARK_CONFFILE"
+        unsetEnv "SKYLARK_CONF_FILE"
         unsetEnv "SKYLARK_PORT"
         unsetEnv "SKYLARK_TIMEOUT"
-        setEnv "SKYLARK_LOGLEVEL" "other"
+        setEnv "SKYLARK_LOG_LEVEL" "other"
         c <- decodeEnv :: IO (Either String Conf)
         c @?= Right Conf { _confFile     = Nothing
                          , _confPort     = Nothing
@@ -156,14 +157,14 @@ testDataFileFetch :: TestTree
 testDataFileFetch =
   testGroup "Testing reading of datafile"
     [ testCase "Existing test data file" $ do
-        c <- getDataFile "config/testing.yaml" :: IO Conf
+        c <- getDataFile "conf/testing.yaml" :: IO Conf
         c @?= Conf { _confFile     = Nothing
                    , _confPort     = Just 3031
                    , _confTimeout  = Just 121
                    , _confLogLevel = Just LevelDebug
                    }
     , testCase "Existing data file" $ do
-        c <- getDataFile "config/dev.yaml" :: IO Conf
+        c <- getDataFile "conf/dev.yaml" :: IO Conf
         c @?= Conf { _confFile     = Nothing
                    , _confPort     = Just 3030
                    , _confTimeout  = Just 120
@@ -202,22 +203,22 @@ testCompleteConf :: TestTree
 testCompleteConf =
   testGroup "Test parsing of a complete configuration"
     [ testCase "Sanity test on parsing of configuration" $ do
-        unsetEnv "SKYLARK_CONFFILE"
+        unsetEnv "SKYLARK_CONF_FILE"
         unsetEnv "SKYLARK_PORT"
         let p = parser parseConf
         c <- getCompleteConf p _confFile :: IO (Either String Conf)
-        either (flip assertBool False) ((@?=) $ def {_confPort = Just 3030}) c
+        either (`assertBool` False) ((@?=) $ def {_confPort = Just 3030}) c
     ]
 
 testCompleteConf1 :: TestTree
 testCompleteConf1 =
-  testGroup "Test parsing with env config"
+  testGroup "Test parsing with env configuration"
     [ testCase "Sanity test on parsing of configuration" $ do
-        unsetEnv "SKYLARK_CONFFILE"
+        unsetEnv "SKYLARK_CONF_FILE"
         setEnv "SKYLARK_PORT" "2222"
         let p = parser parseConf
         c <- getCompleteConf p _confFile :: IO (Either String Conf)
-        either (flip assertBool False) ((@?=) $ def {_confPort = Just 2222}) c
+        either (`assertBool` False) ((@?=) $ def {_confPort = Just 2222}) c
     ]
 
 tests :: TestTree

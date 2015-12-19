@@ -1,6 +1,5 @@
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
 -- Module:      Network.Skylark.Core.Config
@@ -22,7 +21,7 @@ import Control.Monad.Logger
 import Data.Aeson
 import Data.Default
 import Data.Word
-import Data.Yaml hiding (Parser)
+import Data.Yaml                    hiding (Parser)
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 import Options.Applicative

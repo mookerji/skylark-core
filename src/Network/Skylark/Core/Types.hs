@@ -4,6 +4,7 @@
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE TypeFamilies               #-}
 
@@ -17,7 +18,7 @@
 
 module Network.Skylark.Core.Types where
 
-import Control.Lens
+import Control.Lens hiding ( (.=) )
 import Control.Monad.Base
 import Control.Monad.Catch
 import Control.Monad.Logger
@@ -25,13 +26,18 @@ import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Trans.AWS hiding ( LogLevel )
 import Control.Monad.Trans.Resource
-import Data.Text
+import Data.Aeson hiding ( (.!=), (.=) )
+import Data.Default
+import Data.Monoid
+import Data.Text ( pack, unpack )
 import Data.Text.Lazy ( toStrict )
-import Data.Text.Lazy.Builder
+import Data.Text.Lazy.Builder hiding ( fromText )
 import Data.Time
 import Data.UUID
 import Network.AWS.DynamoDB
 import Network.Skylark.Core.Prelude
+import System.Envy
+import Text.Read ( readMaybe )
 
 type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
@@ -141,6 +147,9 @@ class HasUpsert a where
 instance HasUpsert Upsert where
   upsertId = id
 
+--------------------------------------------------------------------------------
+-- Common type classes
+
 class Txt a where
   txt :: a -> Text
 
@@ -171,3 +180,122 @@ instance Txt UUID where
 instance Txt UTCTime where
   txt time =
     txt $ formatTime defaultTimeLocale "%FT%T%z" time
+
+instance ToJSON UUID where
+  toJSON = toJSON . toText
+
+instance FromJSON UUID where
+  parseJSON (String s) = maybe mzero return (fromText s)
+  parseJSON _ = mzero
+
+instance FromJSON LogLevel where
+  parseJSON (String "debug") = return LevelDebug
+  parseJSON (String "info")  = return LevelInfo
+  parseJSON (String "warn")  = return LevelWarn
+  parseJSON (String "error") = return LevelError
+  parseJSON (String s)       = return $ LevelOther s
+  parseJSON _                = mzero
+
+--------------------------------------------------------------------------------
+-- Service configuration
+
+instance Var Word where toVar = unpack . show; fromVar = readMaybe
+
+instance Var LogLevel where
+  toVar LevelDebug     = "debug"
+  toVar LevelInfo      = "info"
+  toVar LevelWarn      = "warn"
+  toVar LevelError     = "error"
+  toVar (LevelOther s) = unpack s
+
+  fromVar "debug" = return LevelDebug
+  fromVar "info"  = return LevelInfo
+  fromVar "warn"  = return LevelWarn
+  fromVar "error" = return LevelError
+  fromVar s       = return $ LevelOther (pack s)
+
+instance (Var a, Show a, Read a) => Var (Maybe a) where
+  toVar (Just v) = (unpack . show) v
+  toVar Nothing  = ""
+
+  fromVar = readMaybe
+
+-- | A record type representing full or partial configuration of an
+-- HTTP service. Remaining unspecified fields are filled in with the
+-- default values from Default.
+--
+data Conf = Conf
+  { _confFile     :: Maybe String   -- ^ Service configuration file location
+  , _confPort     :: Maybe Word     -- ^ Port to listen on
+  , _confTimeout  :: Maybe Word     -- ^ Connection timeout (sec)
+  , _confLogLevel :: Maybe LogLevel -- ^ Logging level
+  } deriving ( Eq, Show )
+
+class HasConf a where
+  cId          :: Lens' a Conf
+  confFile     :: Lens' a (Maybe String)
+  confPort     :: Lens' a (Maybe Word)
+  confTimeout  :: Lens' a (Maybe Word)
+  confLogLevel :: Lens' a (Maybe LogLevel)
+
+  confFile      = cId . lens _confFile     (\s a -> s { _confFile = a } )
+  confPort      = cId . lens _confPort     (\s a -> s { _confPort = a } )
+  confTimeout   = cId . lens _confTimeout  (\s a -> s { _confTimeout = a } )
+  confLogLevel  = cId . lens _confLogLevel (\s a -> s { _confLogLevel = a } )
+
+instance HasConf Conf where
+  cId = id
+
+instance Default Conf where
+  def = Conf
+    { _confFile     = Just "conf/dev.yaml"
+    , _confPort     = Just 5000
+    , _confTimeout  = Just 120
+    , _confLogLevel = Just LevelInfo
+    }
+
+instance FromJSON Conf where
+  parseJSON (Object v) =
+    Conf                <$>
+      v .:? "conf-file" <*>
+      v .:? "port"      <*>
+      v .:? "timeout"   <*>
+      v .:? "log-level"
+  parseJSON _ = mzero
+
+instance FromEnv Conf where
+  fromEnv =
+    Conf                           <$>
+      envMaybe "SKYLARK_CONF_FILE" <*>
+      envMaybe "SKYLARK_PORT"      <*>
+      envMaybe "SKYLARK_TIMEOUT"   <*>
+      envMaybe "SKYLARK_LOG_LEVEL"
+
+instance ToEnv Conf where
+  toEnv Conf{..} = makeEnv
+    [ "SKYLARK_CONF_FILE" .= _confFile
+    , "SKYLARK_PORT"      .= _confPort
+    , "SKYLARK_TIMEOUT"   .= _confTimeout
+    , "SKYLARK_LOG_LEVEL" .= _confLogLevel
+    ]
+
+instance Monoid Conf where
+  mempty = Conf
+    { _confFile     = Nothing
+    , _confPort     = Nothing
+    , _confTimeout  = Nothing
+    , _confLogLevel = Nothing
+    }
+
+  mappend a b = Conf
+    { _confFile     = merge _confFile a b
+    , _confPort     = merge _confPort a b
+    , _confTimeout  = merge _confTimeout a b
+    , _confLogLevel = merge _confLogLevel a b
+    }
+
+-- | Given a record field accessor. return the second non-Nothing
+-- Value for a record field.
+--
+merge :: (a -> Maybe b) -> a -> a -> Maybe b
+merge f a b = getLast $! (mappend `on` (Last . f)) a b

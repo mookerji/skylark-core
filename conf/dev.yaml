@@ -1,0 +1,4 @@
+---
+  port:      3030
+  timeout:    120
+  log-level: info

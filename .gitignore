@@ -7,4 +7,4 @@
 .hsenv
 .stack-work/
 dist
-
+*.DS_Store

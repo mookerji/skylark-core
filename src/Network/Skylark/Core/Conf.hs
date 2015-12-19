@@ -11,11 +11,11 @@
 -- Config module for Skylark Core.
 
 module Network.Skylark.Core.Conf
-  ( getCompleteConfig
+  ( getCompleteConf
   , getDataFile
   , parser
   , options
-  , parseConfig
+  , parseConf
   ) where
 
 import Control.Monad.Logger
@@ -34,8 +34,8 @@ import System.Envy
 
 -- | Metric host
 --
-confFile :: Parser String
-confFile =
+configFile :: Parser String
+configFile =
   strOption
     $  long    "conf-file"
     <> short   'c'
@@ -44,7 +44,7 @@ confFile =
 
 -- | Parse HTTP port
 --
-port :: Parser Word32
+port :: Parser Word
 port =
   option auto
     $  long    "port"
@@ -54,7 +54,7 @@ port =
 
 -- | Parse connection timeout
 --
-timeout :: Parser Word32
+timeout :: Parser Word
 timeout =
   option auto
     $  long    "timeout"
@@ -79,9 +79,9 @@ logLevel =
 
 -- | Parser for log level configuration.
 --
-parseConfig :: Parser Config
-parseConfig = Config    <$>
-  optional confFile     <*>
+parseConf :: Parser Conf
+parseConf = Conf        <$>
+  optional configFile   <*>
   optional port         <*>
   optional timeout      <*>
   optional logLevel
@@ -107,13 +107,13 @@ getDataFile f =
 -- configuration file, command line options, and the environmental
 -- configuration. Accepts the last non-Maybe value in each
 --
-getCompleteConfig :: forall a. (Monoid a, FromEnv a, FromJSON a, Default a)
-                  => ParserInfo a         -- ^ Command line parser for a type.
-                  -> (a -> Maybe String)  -- ^ Accessor method for a
-                                          -- configuration file.
-                  -> IO (Either String a) -- ^ Either an error string
-                                          -- or configuration.
-getCompleteConfig p conf = do
+getCompleteConf :: forall a. (Monoid a, FromEnv a, FromJSON a, Default a)
+                => ParserInfo a         -- ^ Command line parser for a type.
+                -> (a -> Maybe String)  -- ^ Accessor method for a
+                                        -- configuration file.
+                -> IO (Either String a) -- ^ Either an error string
+                                        -- or configuration.
+getCompleteConf p conf = do
   e <- decodeEnv :: IO (Either String a)
   let rest x = do opt <- options p
                   d <- def

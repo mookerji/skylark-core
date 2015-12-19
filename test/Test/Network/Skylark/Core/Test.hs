@@ -11,10 +11,10 @@ module Test.Network.Skylark.Core.Test where
 import BasicPrelude
 import Network.Skylark.Core.Types
 
-confTest :: Config
-confTest = Config
-  { _cConfigFile    = Nothing
-  , _cPort          = Nothing
-  , _cTimeout       = Nothing
-  , _cLogLevel      = Nothing
+confTest :: Conf
+confTest = Conf
+  { _confFile          = Nothing
+  , _confPort          = Nothing
+  , _confTimeout       = Nothing
+  , _confLogLevel      = Nothing
   }

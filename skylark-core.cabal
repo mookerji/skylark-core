@@ -10,8 +10,8 @@ copyright:             2015 Mark Fine
 category:              Web
 build-type:            Simple
 cabal-version:         >= 1.10
-data-files:            config/dev.yaml
-                     , config/testing.yaml
+data-files:            conf/dev.yaml
+                     , conf/testing.yaml
 
 library
   hs-source-dirs:      src

@@ -177,25 +177,25 @@ testConfMonoid =
     [ testCase "Both a and b are Nothings" $ do
         let a = confTest
             b = a
-        a `mappend` b @?= a
+        a <> b @?= a
     , testCase "Both a and b have one Just" $ do
         let a = confTest { _confPort = Just 1 }
             b = a
-        a `mappend` b @?= a
+        a <> b @?= a
     , testCase "b has a Just" $ do
         let a = confTest
             b = a { _confPort = Just 1 }
-        a `mappend` b @?= b
+        a <> b @?= b
     , testCase "a has a Just" $ do
         let a = confTest { _confPort = Just 1 }
             b = a { _confPort = Nothing }
-        a `mappend` b @?= a
+        a <> b @?= a
     , testCase "Two separate Just fields are in the merged" $ do
         let a = confTest { _confPort = Just 1 }
             b = a { _confTimeout = Just 120 }
-        a `mappend` b @?= a { _confTimeout = Just 120
-                            , _confPort    = Just 1
-                            }
+        a <> b @?= a { _confTimeout = Just 120
+                     , _confPort    = Just 1
+                     }
     ]
 
 testCompleteConf :: TestTree

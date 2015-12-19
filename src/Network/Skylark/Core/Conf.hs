@@ -117,6 +117,6 @@ getCompleteConf p conf = do
   e <- decodeEnv :: IO (Either String a)
   let rest x = do opt <- options p
                   d <- def
-                  f <- getDataFile $ fromMaybe "" $ conf (d `mappend` opt `mappend` x)
-                  return $ Right (d `mappend` f `mappend` opt `mappend` x)
+                  f <- getDataFile $ fromMaybe "" $ conf (d <> opt <> x)
+                  return $ Right (d <> f <> opt <> x)
   either (return . Left) rest e

@@ -7,11 +7,15 @@
 -- Conf module for Skylark Core.
 
 module Network.Skylark.Core.Conf
-  ( getCompleteConf
+  ( configFile
+  , getCompleteConf
   , getDataFile
+  , logLevel
   , parser
   , options
   , parseConf
+  , port
+  , timeout
   ) where
 
 import Control.Monad.Logger

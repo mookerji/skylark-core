@@ -232,19 +232,19 @@ data Conf = Conf
   } deriving ( Eq, Show )
 
 class HasConf a where
-  cId          :: Lens' a Conf
+  confId       :: Lens' a Conf
   confFile     :: Lens' a (Maybe String)
   confPort     :: Lens' a (Maybe Word)
   confTimeout  :: Lens' a (Maybe Word)
   confLogLevel :: Lens' a (Maybe LogLevel)
 
-  confFile      = cId . lens _confFile     (\s a -> s { _confFile = a } )
-  confPort      = cId . lens _confPort     (\s a -> s { _confPort = a } )
-  confTimeout   = cId . lens _confTimeout  (\s a -> s { _confTimeout = a } )
-  confLogLevel  = cId . lens _confLogLevel (\s a -> s { _confLogLevel = a } )
+  confFile      = confId . lens _confFile     (\s a -> s { _confFile = a } )
+  confPort      = confId . lens _confPort     (\s a -> s { _confPort = a } )
+  confTimeout   = confId . lens _confTimeout  (\s a -> s { _confTimeout = a } )
+  confLogLevel  = confId . lens _confLogLevel (\s a -> s { _confLogLevel = a } )
 
 instance HasConf Conf where
-  cId = id
+  confId = id
 
 instance Default Conf where
   def = Conf

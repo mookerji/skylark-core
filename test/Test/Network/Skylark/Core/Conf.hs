@@ -212,12 +212,12 @@ testCompleteConf =
     [ testCase "Sanity test on parsing of configuration with defaults" $ do
         unsetEnv "SKYLARK_CONF_FILE"
         unsetEnv "SKYLARK_PORT"
-        c <- getCompleteConf (parser parseConf) _confFile
+        c <- getConf parseConf
         c @?= (def & confPort .~ Just 3030)
     , testCase "Sanity test on parsing of configuration with a non-default" $ do
         unsetEnv "SKYLARK_CONF_FILE"
         setEnv "SKYLARK_PORT" "2222"
-        c <- getCompleteConf (parser parseConf) _confFile
+        c <- getConf parseConf
         c @?= (def & confPort .~ Just 2222)
     ]
 

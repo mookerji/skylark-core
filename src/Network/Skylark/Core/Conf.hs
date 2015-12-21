@@ -7,21 +7,16 @@
 -- Conf module for Skylark Core.
 
 module Network.Skylark.Core.Conf
-  ( configFile
-  , getCompleteConf
+  ( getConf
   , getDataFile
-  , logLevel
   , parser
-  , options
   , parseConf
-  , port
-  , timeout
   ) where
 
+import Control.Lens
 import Control.Monad.Logger
 import Data.Aeson                   hiding (decode)
 import Data.Default
-import Data.Word
 import Data.Yaml                    hiding (Parser, decode)
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
@@ -32,19 +27,19 @@ import System.Envy
 --------------------------------------------------------------------------------
 -- Configuration parsers
 
--- | Metric host
+-- | Configuration file.
 --
-configFile :: Parser String
-configFile =
+file :: Parser String
+file =
   strOption
     $  long    "conf-file"
     <> short   'c'
     <> metavar "FILE"
     <> help    "Config file"
 
--- | Parse HTTP port
+-- | Parse HTTP port.
 --
-port :: Parser Word
+port :: Parser Int
 port =
   option auto
     $  long    "port"
@@ -52,9 +47,9 @@ port =
     <> metavar "PORT"
     <> help    "Port to listen on"
 
--- | Parse connection timeout
+-- | Parse connection timeout.
 --
-timeout :: Parser Word
+timeout :: Parser Int
 timeout =
   option auto
     $  long    "timeout"
@@ -62,7 +57,7 @@ timeout =
     <> metavar "TIMEOUT"
     <> help    "Timeout in seconds"
 
--- | Parser for log level configuration.
+-- | Parse log level configuration.
 --
 logLevel :: Parser LogLevel
 logLevel =
@@ -77,24 +72,19 @@ logLevel =
         toLogLevel "error" = LevelError
         toLogLevel s       = LevelOther s
 
--- | Parser for log level configuration.
+-- | Configuration parser.
 --
 parseConf :: Parser Conf
-parseConf = Conf        <$>
-  optional configFile   <*>
-  optional port         <*>
-  optional timeout      <*>
+parseConf = Conf    <$>
+  optional file     <*>
+  optional port     <*>
+  optional timeout  <*>
   optional logLevel
 
 -- | Produce a full command line options parser.
 --
 parser :: Parser a -> ParserInfo a
 parser parse = info ( helper <*> parse ) fullDesc
-
--- | Execute parser and value from the parser.
---
-options :: ParserInfo a -> IO a
-options = execParser
 
 -- | Execute parser and value from the parser.
 --
@@ -107,10 +97,10 @@ getDataFile f =
 -- configuration file, command line options, and the environmental
 -- configuration. Accepts the last non-Maybe value in each
 --
-getCompleteConf :: (Monoid a, FromEnv a, Default a, FromJSON a) => ParserInfo a -> (a -> Maybe String) -> IO a
-getCompleteConf p conf = do
+getConf :: MonadConf a => Parser a -> IO a
+getConf p = do
   e <- decode
-  o <- options p
-  let d = def
-  f <- maybe (return Nothing) getDataFile $ conf $ d <> o <> fromMaybe mempty e
-  return $ d <> fromMaybe mempty f <> o <> fromMaybe mempty e
+  o <- execParser $ parser p
+  f <- maybe (return Nothing) getDataFile $ (^. confFile) $ def <> o <> fromMaybe mempty e
+  return $ def <> fromMaybe mempty f <> o <> fromMaybe mempty e
+

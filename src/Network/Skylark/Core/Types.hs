@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
@@ -53,17 +52,9 @@ newtype CoreT e m a = CoreT
              , MonadLogger
              )
 
-type MonadCore e m =
-  ( AWSConstraint e m
-  , HasCtx e
-  , MonadLogger m
-  , MonadRandom m
-  )
-
 data Ctx = Ctx
   { _ctxEnv        :: Env
   , _ctxLog        :: Log
-  , _ctxLogLevel   :: LogLevel
   , _ctxPreamble   :: Text
   , _ctxJitterRate :: Double
   }
@@ -72,13 +63,11 @@ class HasEnv a => HasCtx a where
   ctxId         :: Lens' a Ctx
   ctxEnv        :: Lens' a Env
   ctxLog        :: Lens' a Log
-  ctxLogLevel   :: Lens' a LogLevel
   ctxPreamble   :: Lens' a Text
   ctxJitterRate :: Lens' a Double
 
   ctxEnv        = ctxId . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
   ctxLog        = ctxId . lens _ctxLog        (\s a -> s { _ctxLog = a } )
-  ctxLogLevel   = ctxId . lens _ctxLogLevel   (\s a -> s { _ctxLogLevel = a } )
   ctxPreamble   = ctxId . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
   ctxJitterRate = ctxId . lens _ctxJitterRate (\s a -> s { _ctxJitterRate = a } )
 
@@ -113,6 +102,13 @@ instance MonadRandom m => MonadRandom (ResourceT m) where
   getRandoms  = lift getRandoms
   getRandomR  = lift . getRandomR
   getRandomRs = lift . getRandomRs
+
+type MonadCore e m =
+  ( AWSConstraint e m
+  , HasCtx e
+  , MonadLogger m
+  , MonadRandom m
+  )
 
 type MonadMap k m =
   ( Eq k
@@ -199,8 +195,6 @@ instance FromJSON LogLevel where
 --------------------------------------------------------------------------------
 -- Service configuration
 
-instance Var Word where toVar = unpack . show; fromVar = readMaybe
-
 instance Var LogLevel where
   toVar LevelDebug     = "debug"
   toVar LevelInfo      = "info"
@@ -226,16 +220,16 @@ instance (Var a, Show a, Read a) => Var (Maybe a) where
 --
 data Conf = Conf
   { _confFile     :: Maybe String   -- ^ Service configuration file location
-  , _confPort     :: Maybe Word     -- ^ Port to listen on
-  , _confTimeout  :: Maybe Word     -- ^ Connection timeout (sec)
+  , _confPort     :: Maybe Int      -- ^ Port to listen on
+  , _confTimeout  :: Maybe Int      -- ^ Connection timeout (sec)
   , _confLogLevel :: Maybe LogLevel -- ^ Logging level
   } deriving ( Eq, Show )
 
 class HasConf a where
   confId       :: Lens' a Conf
   confFile     :: Lens' a (Maybe String)
-  confPort     :: Lens' a (Maybe Word)
-  confTimeout  :: Lens' a (Maybe Word)
+  confPort     :: Lens' a (Maybe Int)
+  confTimeout  :: Lens' a (Maybe Int)
   confLogLevel :: Lens' a (Maybe LogLevel)
 
   confFile      = confId . lens _confFile     (\s a -> s { _confFile = a } )
@@ -271,14 +265,6 @@ instance FromEnv Conf where
       envMaybe "SKYLARK_TIMEOUT"   <*>
       envMaybe "SKYLARK_LOG_LEVEL"
 
-instance ToEnv Conf where
-  toEnv Conf{..} = makeEnv
-    [ "SKYLARK_CONF_FILE" .= _confFile
-    , "SKYLARK_PORT"      .= _confPort
-    , "SKYLARK_TIMEOUT"   .= _confTimeout
-    , "SKYLARK_LOG_LEVEL" .= _confLogLevel
-    ]
-
 instance Monoid Conf where
   mempty = Conf
     { _confFile     = Nothing
@@ -299,3 +285,11 @@ instance Monoid Conf where
 --
 merge :: (a -> Maybe b) -> a -> a -> Maybe b
 merge f a b = getLast $! (mappend `on` (Last . f)) a b
+
+type MonadConf a =
+  ( HasConf  a
+  , Default  a
+  , FromJSON a
+  , FromEnv  a
+  , Monoid   a
+  )

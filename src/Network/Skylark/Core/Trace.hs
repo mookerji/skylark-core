@@ -27,42 +27,41 @@ import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 import System.Log.FastLogger
 
-trace :: LoggerSet -> Log
-trace l _loc _source _level s = do
-  pushLogStr l s
-  flushLogStr l
+traceLevel :: LogLevel -> LoggerSet -> Log
+traceLevel level ls _loc _source level' s =
+  unless (level' < level) $ do
+    pushLogStr ls s
+    flushLogStr ls
 
-newStderrTrace :: IO Log
-newStderrTrace = do
-  l <- newStderrLoggerSet defaultBufSize
-  return $ trace l
+newStderrTrace :: LogLevel -> IO Log
+newStderrTrace level = do
+  ls <- newStderrLoggerSet defaultBufSize
+  return $ traceLevel level ls
 
-newStdoutTrace :: IO Log
-newStdoutTrace = do
-  l <- newStdoutLoggerSet defaultBufSize
-  return $ trace l
+newStdoutTrace :: LogLevel -> IO Log
+newStdoutTrace level = do
+  ls <- newStdoutLoggerSet defaultBufSize
+  return $ traceLevel level ls
 
 traceNull :: Log
 traceNull _loc _source _level _s =
   return ()
 
-traceLevel :: MonadCore e m => LogLevel -> (Text -> m ()) -> Text -> m ()
-traceLevel level logN s = do
-  level' <- view ctxLogLevel
-  unless (level < level') $ do
-    time <- liftIO getCurrentTime
-    preamble <- view ctxPreamble
-    logN $ sformat (stext % " " % stext % " " % stext % "\n")
-      (txt time) preamble s
+trace :: MonadCore e m => (Text -> m ()) -> Text -> m ()
+trace logN s = do
+  time <- liftIO getCurrentTime
+  preamble <- view ctxPreamble
+  logN $ sformat (stext % " " % stext % " " % stext % "\n")
+    (txt time) preamble s
 
 traceDebug :: MonadCore e m => Text -> m ()
-traceDebug = traceLevel LevelDebug logDebugN
+traceDebug = trace logDebugN
 
 traceInfo :: MonadCore e m => Text -> m ()
-traceInfo = traceLevel LevelInfo logInfoN
+traceInfo = trace logInfoN
 
 traceWarn :: MonadCore e m => Text -> m ()
-traceWarn = traceLevel LevelWarn logWarnN
+traceWarn = trace logWarnN
 
 traceError :: MonadCore e m => Text -> m ()
-traceError = traceLevel LevelError logErrorN
+traceError = trace logErrorN

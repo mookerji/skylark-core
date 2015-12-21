@@ -111,6 +111,6 @@ getCompleteConf :: (Monoid a, FromEnv a, Default a, FromJSON a) => ParserInfo a 
 getCompleteConf p conf = do
   e <- decode
   o <- options p
-  d <- def
+  let d = def
   f <- maybe (return Nothing) getDataFile $ conf $ d <> o <> fromMaybe mempty e
   return $ d <> fromMaybe mempty f <> o <> fromMaybe mempty e

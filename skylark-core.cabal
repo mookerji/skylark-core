@@ -23,7 +23,6 @@ library
                      , Network.Skylark.Core.Types
                      , Network.Skylark.Core.Upserts
   other-modules:       Network.Skylark.Core.Prelude
-                     , Paths_skylark_core
   ghc-options:         -Wall
   build-depends:       aeson
                      , amazonka
@@ -57,7 +56,8 @@ test-suite test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Test.hs
-  other-modules:       Test.Network.Skylark.Core.Conf
+  other-modules:       Paths_skylark_core
+                     , Test.Network.Skylark.Core.Conf
                      , Test.Network.Skylark.Core.Test
   build-depends:       base
                      , basic-prelude

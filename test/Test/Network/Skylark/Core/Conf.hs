@@ -17,6 +17,7 @@ import Data.Default
 import Network.Skylark.Core.Conf
 import Network.Skylark.Core.Types
 import Options.Applicative
+import Paths_skylark_core
 import System.Environment
 import System.Envy
 import Test.Network.Skylark.Core.Test
@@ -210,18 +211,18 @@ testConfMonoid =
 
 -- TOOD/FIX (Buro): This test occasionally fails because of a race
 -- condition in System.Environment.
-testCompleteConf :: TestTree
-testCompleteConf =
+testGetConf :: TestTree
+testGetConf =
   testGroup "Test parsing of a complete configuration"
     [ testCase "Sanity test on parsing of configuration with defaults" $ do
         unsetEnv "SKYLARK_CONF_FILE"
         unsetEnv "SKYLARK_PORT"
-        c <- getConf parseConf
+        c <- getConf parseConf getDataFileName
         c @?= (def & confPort .~ Just 3030)
     , testCase "Sanity test on parsing of configuration with a non-default" $ do
         unsetEnv "SKYLARK_CONF_FILE"
         setEnv "SKYLARK_PORT" "2222"
-        c <- getConf parseConf
+        c <- getConf parseConf getDataFileName
         c @?= (def & confPort .~ Just 2222)
     ]
 
@@ -236,5 +237,5 @@ tests =
     --, testEnv
     , testDataFileFetch
     , testConfMonoid
-    --, testCompleteConf
+    --, testGetConf
     ]

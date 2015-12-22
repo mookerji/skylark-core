@@ -15,8 +15,9 @@ module Network.Skylark.Core
 import Control.Lens
 import Control.Monad.Logger
 import Control.Monad.Trans.AWS
+import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 
 runCoreT :: HasCtx r => r -> CoreT r m a -> m a
 runCoreT e (CoreT m) =
-  runAWST e (runLoggingT m (e ^. ctxLog))
+  runAWST e $ runLoggingT m $ e ^. ctxLog

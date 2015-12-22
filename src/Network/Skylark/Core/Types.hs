@@ -242,7 +242,7 @@ instance HasConf Conf where
 
 instance Default Conf where
   def = Conf
-    { _confFile     = Just "conf/dev.yaml"
+    { _confFile     = Nothing
     , _confPort     = Just 5000
     , _confTimeout  = Just 120
     , _confLogLevel = Just LevelInfo

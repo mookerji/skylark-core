@@ -21,7 +21,6 @@ import Data.Yaml                    hiding (Parser, decode)
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 import Options.Applicative
-import Paths_skylark_core
 import System.Envy
 
 --------------------------------------------------------------------------------
@@ -90,17 +89,17 @@ parser parse = info ( helper <*> parse ) fullDesc
 --
 getDataFile :: FromJSON a => String -> IO a
 getDataFile f =
-  getDataFileName f >>= decodeFileEither >>= either throwIO return
+  decodeFileEither f >>= either throwIO return
 
 -- | Return the full environmental configuration. Looks for the
 -- configuration in three places (in order): a default, a
 -- configuration file, command line options, and the environmental
 -- configuration. Accepts the last non-Maybe value in each
 --
-getConf :: MonadConf a => Parser a -> IO a
-getConf p = do
+getConf :: MonadConf a => Parser a -> (String -> IO String) -> IO a
+getConf p fn = do
   e <- decode
   o <- execParser $ parser p
-  f <- maybe (return Nothing) getDataFile $ (^. confFile) $ def <> o <> fromMaybe mempty e
+  f <- maybe (return Nothing) (fn >=> getDataFile) $ (^. confFile) $ def <> o <> fromMaybe mempty e
   return $ def <> fromMaybe mempty f <> o <> fromMaybe mempty e
 

@@ -72,6 +72,26 @@ logLevel =
         toLogLevel "error" = LevelError
         toLogLevel s       = LevelOther s
 
+-- | Info file.
+--
+infoFile :: Parser String
+infoFile =
+  strOption
+    $  long    "info-file"
+    <> short   'i'
+    <> metavar "INFO-FILE"
+    <> help    "Version info file"
+
+-- | Application name.
+--
+appName :: Parser String
+appName =
+  strOption
+    $  long    "app-name"
+    <> short   'n'
+    <> metavar "APP-NAME"
+    <> help    "Application name"
+
 -- | Configuration parser.
 --
 parseConf :: Parser Conf
@@ -79,7 +99,9 @@ parseConf = Conf    <$>
   optional file     <*>
   optional port     <*>
   optional timeout  <*>
-  optional logLevel
+  optional logLevel <*>
+  optional infoFile <*>
+  optional appName
 
 -- | Produce a full command line options parser.
 --

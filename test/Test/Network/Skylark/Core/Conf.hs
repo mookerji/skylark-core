@@ -107,6 +107,8 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Nothing
           , _confLogLevel = Nothing
+          , _confInfoFile = Nothing
+          , _confAppName  = Nothing
           }
     , testCase "Port and Timeout" $ do
         unsetEnv "SKYLARK_CONF_FILE"
@@ -119,6 +121,8 @@ testEnv =
           , _confPort     = Just 1
           , _confTimeout  = Just 1
           , _confLogLevel = Nothing
+          , _confInfoFile = Nothing
+          , _confAppName  = Nothing
           }
      , testCase "String value" $ do
         setEnv "SKYLARK_CONF_FILE" "l"
@@ -131,6 +135,8 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Just 1
           , _confLogLevel = Nothing
+          , _confInfoFile = Nothing
+          , _confAppName  = Nothing
           }
      , testCase "LevelInfo" $ do
         unsetEnv "SKYLARK_CONF_FILE"
@@ -143,6 +149,8 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Nothing
           , _confLogLevel = Just LevelInfo
+          , _confInfoFile = Nothing
+          , _confAppName  = Nothing
           }
      , testCase "LevelOther" $ do
         unsetEnv "SKYLARK_CONF_FILE"
@@ -155,6 +163,8 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Nothing
           , _confLogLevel = Just (LevelOther "other")
+          , _confInfoFile = Nothing
+          , _confAppName  = Nothing
           }
     ]
 
@@ -168,6 +178,8 @@ testDataFileFetch =
           , _confPort     = Just 3031
           , _confTimeout  = Just 121
           , _confLogLevel = Just LevelDebug
+          , _confInfoFile = Nothing
+          , _confAppName  = Nothing
           }
     , testCase "Existing data file" $ do
         c <- getDataFile "conf/dev.yaml"
@@ -176,6 +188,8 @@ testDataFileFetch =
           , _confPort     = Just 3030
           , _confTimeout  = Just 120
           , _confLogLevel = Just LevelInfo
+          , _confInfoFile = Nothing
+          , _confAppName  = Nothing
           }
     ]
 

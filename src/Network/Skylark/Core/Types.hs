@@ -293,3 +293,8 @@ type MonadConf a =
   , FromEnv  a
   , Monoid   a
   )
+
+data ConfException = MandatoryConfException String
+  deriving ( Show, Eq )
+
+instance Exception ConfException

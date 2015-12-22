@@ -9,6 +9,7 @@
 module Network.Skylark.Core.Conf
   ( getConf
   , getDataFile
+  , mandatory
   , parser
   , parseConf
   ) where
@@ -103,3 +104,9 @@ getConf p fn = do
   f <- maybe (return Nothing) (fn >=> getDataFile) $ (^. confFile) $ def <> o <> fromMaybe mempty e
   return $ def <> fromMaybe mempty f <> o <> fromMaybe mempty e
 
+-- | Check a mandatory configuration value. Return the value, or if
+-- not present, throw a MandatoryConfException.
+--
+mandatory :: String -> Maybe a -> IO a
+mandatory name =
+  maybe (throwIO $ MandatoryConfException name) return

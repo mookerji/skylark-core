@@ -63,8 +63,7 @@ data Conf = Conf
   , _confPort     :: Maybe Int      -- ^ Port to listen on
   , _confTimeout  :: Maybe Int      -- ^ Connection timeout (sec)
   , _confLogLevel :: Maybe LogLevel -- ^ Logging level
-  , _confInfoFile :: Maybe String   -- ^ Version information file
-  , _confAppName  :: Maybe String   -- ^ Name of the application
+  , _confAppName  :: Maybe Text     -- ^ Name of the application
   } deriving ( Eq, Show )
 
 class HasConf a where
@@ -73,14 +72,12 @@ class HasConf a where
   confPort     :: Lens' a (Maybe Int)
   confTimeout  :: Lens' a (Maybe Int)
   confLogLevel :: Lens' a (Maybe LogLevel)
-  confInfoFile :: Lens' a (Maybe String)
-  confAppName  :: Lens' a (Maybe String)
+  confAppName  :: Lens' a (Maybe Text)
 
   confFile      = confId . lens _confFile     (\s a -> s { _confFile = a } )
   confPort      = confId . lens _confPort     (\s a -> s { _confPort = a } )
   confTimeout   = confId . lens _confTimeout  (\s a -> s { _confTimeout = a } )
   confLogLevel  = confId . lens _confLogLevel (\s a -> s { _confLogLevel = a } )
-  confInfoFile  = confId . lens _confInfoFile (\s a -> s { _confInfoFile = a } )
   confAppName   = confId . lens _confAppName  (\s a -> s { _confAppName = a } )
 
 type MonadConf a =
@@ -105,7 +102,6 @@ instance Default Conf where
     , _confPort     = Just 5000
     , _confTimeout  = Just 120
     , _confLogLevel = Just LevelInfo
-    , _confInfoFile = Just "conf/info.yaml"
     , _confAppName  = Nothing
     }
 
@@ -116,7 +112,6 @@ instance FromJSON Conf where
       v .:? "port"      <*>
       v .:? "timeout"   <*>
       v .:? "log-level" <*>
-      v .:? "info-file" <*>
       v .:? "app-name"
   parseJSON _ = mzero
 
@@ -127,7 +122,6 @@ instance FromEnv Conf where
       envMaybe "SKYLARK_PORT"      <*>
       envMaybe "SKYLARK_TIMEOUT"   <*>
       envMaybe "SKYLARK_LOG_LEVEL" <*>
-      envMaybe "SKYLARK_INFO_FILE" <*>
       envMaybe "SKYLARK_APP_NAME"
 
 instance Monoid Conf where
@@ -136,7 +130,6 @@ instance Monoid Conf where
     , _confPort     = Nothing
     , _confTimeout  = Nothing
     , _confLogLevel = Nothing
-    , _confInfoFile = Nothing
     , _confAppName  = Nothing
     }
 
@@ -145,7 +138,6 @@ instance Monoid Conf where
     , _confPort     = merge _confPort a b
     , _confTimeout  = merge _confTimeout a b
     , _confLogLevel = merge _confLogLevel a b
-    , _confInfoFile = merge _confInfoFile a b
     , _confAppName  = merge _confAppName a b
     }
 
@@ -315,7 +307,7 @@ instance FromJSON LogLevel where
   parseJSON (String s)       = return $ LevelOther s
   parseJSON _                = mzero
 
--- | Git tag version
+-- | Git tag version in information file.
 --
 newtype InfoFile = InfoFile
   { _ifTag :: Text

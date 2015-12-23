@@ -11,8 +11,8 @@ category:              Web
 build-type:            Simple
 cabal-version:         >= 1.10
 data-files:            conf/dev.yaml
+                     , conf/info.yaml
                      , conf/testing.yaml
-                     , conf/info_testing.yaml
 
 library
   hs-source-dirs:      src

@@ -25,10 +25,10 @@ testCtxInit =
     [ testCase "Empty configuration" $
         void (newCtx mempty "" "") `catch` \(MandatoryConfException _) -> return ()
     , testCase "Default configuration" $ do
-        i <- getDataFileName "conf/info_testing.yaml" >>= getDataFile
+        i <- getDataFileName "conf/info.yaml" >>= getDataFile
         let d = def & confAppName  .~ Just "Testing"
         t <- newCtx d (txt $ showVersion version) (i ^. ifTag)
-        t ^. ctxPreamble   @?= "n=Testing v=0.1.0 t=c0e76c2"
+        t ^. ctxPreamble   @?= "n=Testing v=0.1.0 t=deedbeef-fake"
     ]
 
 tests :: TestTree

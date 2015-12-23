@@ -18,3 +18,6 @@ awsSecretKey = "AWS_SECRET_ACCESS_KEY"
 
 jitterRate :: Double
 jitterRate = 0.15
+
+infoFile :: String
+infoFile = "conf/info.yaml"

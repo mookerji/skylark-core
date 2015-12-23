@@ -107,7 +107,6 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Nothing
           , _confLogLevel = Nothing
-          , _confInfoFile = Nothing
           , _confAppName  = Nothing
           }
     , testCase "Port and Timeout" $ do
@@ -121,7 +120,6 @@ testEnv =
           , _confPort     = Just 1
           , _confTimeout  = Just 1
           , _confLogLevel = Nothing
-          , _confInfoFile = Nothing
           , _confAppName  = Nothing
           }
      , testCase "String value" $ do
@@ -135,7 +133,6 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Just 1
           , _confLogLevel = Nothing
-          , _confInfoFile = Nothing
           , _confAppName  = Nothing
           }
      , testCase "LevelInfo" $ do
@@ -149,7 +146,6 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Nothing
           , _confLogLevel = Just LevelInfo
-          , _confInfoFile = Nothing
           , _confAppName  = Nothing
           }
      , testCase "LevelOther" $ do
@@ -163,7 +159,6 @@ testEnv =
           , _confPort     = Nothing
           , _confTimeout  = Nothing
           , _confLogLevel = Just (LevelOther "other")
-          , _confInfoFile = Nothing
           , _confAppName  = Nothing
           }
     ]
@@ -178,7 +173,6 @@ testDataFileFetch =
           , _confPort     = Just 3031
           , _confTimeout  = Just 121
           , _confLogLevel = Just LevelDebug
-          , _confInfoFile = Nothing
           , _confAppName  = Nothing
           }
     , testCase "Existing data file" $ do
@@ -188,7 +182,6 @@ testDataFileFetch =
           , _confPort     = Just 3030
           , _confTimeout  = Just 120
           , _confLogLevel = Just LevelInfo
-          , _confInfoFile = Nothing
           , _confAppName  = Nothing
           }
     ]
@@ -248,8 +241,8 @@ tests =
     , testPort
     , testTimeout
     , testLogLevel
-    --, testEnv
+    -- , testEnv
     , testDataFileFetch
     , testConfMonoid
-    --, testGetConf
+    -- , testGetConf
     ]

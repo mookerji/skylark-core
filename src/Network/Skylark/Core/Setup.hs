@@ -13,8 +13,7 @@ module Network.Skylark.Core.Setup
   ) where
 
 import Control.Lens
-import Control.Monad.Trans.AWS        hiding (LogLevel, timeout)
-import Data.Maybe
+import Control.Monad.Trans.AWS        hiding (timeout)
 import Data.Text
 import Network.Skylark.Core.Conf
 import Network.Skylark.Core.Constants
@@ -38,9 +37,9 @@ newCtx :: Conf         -- ^ Service configuration
        -> Text         -- ^ Git tag
        -> IO Ctx
 newCtx c version tag = do
-  name     <- mandatory "log-level" $ c ^. confAppName
+  name     <- mandatory "app-name" $ c ^. confAppName
   let _ctxConf     = c
-      _ctxPreamble = preamble $ txt name
+      _ctxPreamble = preamble name
   logLevel <- mandatory "log-level" $ c ^. confLogLevel
   _ctxEnv  <- newEnv Oregon $ FromEnv awsAccessKey awsSecretKey Nothing
   _ctxLog  <- newStderrTrace logLevel

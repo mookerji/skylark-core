@@ -2,6 +2,9 @@ sudo: false
 
 language: c
 
+env:
+  - AWS_SECRET_ACCESS_KEY AWS_ACCESS_KEY_ID
+
 addons:
   apt:
     packages:
@@ -24,4 +27,5 @@ install:
 
 script:
   - ./lint.sh
-  - stack build skylark-core --test --bench
+  - printenv
+  - AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test --bench

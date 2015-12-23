@@ -12,7 +12,7 @@ module Network.Skylark.Core.Setup
  ) where
 
 import Control.Monad.Logger
-import Control.Monad.Trans.AWS hiding (LogLevel, timeout)
+import Control.Monad.Trans.AWS        hiding (LogLevel, timeout)
 import Network.Skylark.Core.Constants
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Trace
@@ -22,7 +22,7 @@ import Network.Wai.Handler.Warp
 newSettings :: Int -> Int -> Settings
 newSettings port timeout =
   setPort port       $
-  setTimeout timeout $
+  setTimeout timeout
   defaultSettings
 
 newCtx :: LogLevel -> Text -> Text -> Text -> IO Ctx

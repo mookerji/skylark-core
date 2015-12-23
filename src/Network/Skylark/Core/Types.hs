@@ -53,9 +53,9 @@ newtype CoreT e m a = CoreT
              )
 
 data Ctx = Ctx
-  { _ctxEnv        :: Env
-  , _ctxLog        :: Log
-  , _ctxPreamble   :: Text
+  { _ctxEnv      :: Env
+  , _ctxLog      :: Log
+  , _ctxPreamble :: Text
   }
 
 class HasEnv a => HasCtx a where

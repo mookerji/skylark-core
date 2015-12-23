@@ -53,10 +53,9 @@ newtype CoreT e m a = CoreT
              )
 
 data Ctx = Ctx
-  { _ctxEnv        :: Env
-  , _ctxLog        :: Log
-  , _ctxPreamble   :: Text
-  , _ctxJitterRate :: Double
+  { _ctxEnv      :: Env
+  , _ctxLog      :: Log
+  , _ctxPreamble :: Text
   }
 
 class HasEnv a => HasCtx a where
@@ -64,12 +63,10 @@ class HasEnv a => HasCtx a where
   ctxEnv        :: Lens' a Env
   ctxLog        :: Lens' a Log
   ctxPreamble   :: Lens' a Text
-  ctxJitterRate :: Lens' a Double
 
   ctxEnv        = ctxId . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
   ctxLog        = ctxId . lens _ctxLog        (\s a -> s { _ctxLog = a } )
   ctxPreamble   = ctxId . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
-  ctxJitterRate = ctxId . lens _ctxJitterRate (\s a -> s { _ctxJitterRate = a } )
 
 instance HasCtx Ctx where
   ctxId = id

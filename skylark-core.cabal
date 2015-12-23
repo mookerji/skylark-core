@@ -17,7 +17,9 @@ library
   hs-source-dirs:      src
   exposed-modules:     Network.Skylark.Core
                      , Network.Skylark.Core.Conf
+                     , Network.Skylark.Core.Constants
                      , Network.Skylark.Core.Maps
+                     , Network.Skylark.Core.Setup
                      , Network.Skylark.Core.Timers
                      , Network.Skylark.Core.Trace
                      , Network.Skylark.Core.Types
@@ -47,10 +49,12 @@ library
                      , transformers-base
                      , unordered-containers
                      , uuid
+                     , warp
                      , yaml
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude
                        OverloadedStrings
+                       RecordWildCards
 
 test-suite test
   type:                exitcode-stdio-1.0

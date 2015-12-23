@@ -8,12 +8,14 @@
 
 module Network.Skylark.Core.Prelude
   ( module BasicPrelude
+  , module Formatting
   , fold'
   , foldM'
   , maybe'
   ) where
 
 import BasicPrelude
+import Formatting   (float, int, sformat, stext, (%))
 
 fold' :: Foldable t => t a -> b -> (b -> a -> b) -> b
 fold' as b f = foldl' f b as

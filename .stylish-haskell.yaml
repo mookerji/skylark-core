@@ -68,3 +68,4 @@ language_extensions:
   - FlexibleContexts
   - ConstraintKinds
   - MultiParamTypeClasses
+  - RecordWildCards

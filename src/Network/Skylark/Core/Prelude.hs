@@ -8,6 +8,7 @@
 
 module Network.Skylark.Core.Prelude
   ( module BasicPrelude
+  , module Data.UUID
   , module Formatting
   , fold'
   , foldM'
@@ -15,6 +16,7 @@ module Network.Skylark.Core.Prelude
   ) where
 
 import BasicPrelude
+import Data.UUID    (UUID, fromASCIIBytes, toASCIIBytes)
 import Formatting   (float, int, sformat, stext, (%))
 
 fold' :: Foldable t => t a -> b -> (b -> a -> b) -> b

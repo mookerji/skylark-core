@@ -36,7 +36,6 @@ import Data.UUID
 import Network.AWS.DynamoDB
 import Network.Skylark.Core.Prelude
 import System.Envy
-import Text.Read                    (readMaybe)
 
 type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
@@ -204,12 +203,6 @@ instance Var LogLevel where
   fromVar "warn"  = return LevelWarn
   fromVar "error" = return LevelError
   fromVar s       = return $ LevelOther (pack s)
-
-instance (Var a, Show a, Read a) => Var (Maybe a) where
-  toVar (Just v) = (unpack . show) v
-  toVar Nothing  = ""
-
-  fromVar = readMaybe
 
 -- | A record type representing full or partial configuration of an
 -- HTTP service. Remaining unspecified fields are filled in with the

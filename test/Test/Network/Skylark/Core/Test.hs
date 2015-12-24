@@ -12,9 +12,4 @@ import BasicPrelude
 import Network.Skylark.Core.Types
 
 confTest :: Conf
-confTest = Conf
-  { _confFile          = Nothing
-  , _confPort          = Nothing
-  , _confTimeout       = Nothing
-  , _confLogLevel      = Nothing
-  }
+confTest = mempty

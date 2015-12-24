@@ -24,4 +24,7 @@ install:
 
 script:
   - ./lint.sh
-  - stack build skylark-core --test --bench
+  - printenv
+  # Unit tests require AWS keys in the environment, but somehow aren't
+  # picking them up in the env declaration abovel.
+  - AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test --bench

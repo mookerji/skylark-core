@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
@@ -37,6 +38,118 @@ import Network.AWS.DynamoDB
 import Network.Skylark.Core.Prelude
 import System.Envy
 
+--------------------------------------------------------------------------------
+-- Service configuration
+
+instance Var LogLevel where
+  toVar LevelDebug     = "debug"
+  toVar LevelInfo      = "info"
+  toVar LevelWarn      = "warn"
+  toVar LevelError     = "error"
+  toVar (LevelOther s) = unpack s
+
+  fromVar "debug" = return LevelDebug
+  fromVar "info"  = return LevelInfo
+  fromVar "warn"  = return LevelWarn
+  fromVar "error" = return LevelError
+  fromVar s       = return $ LevelOther (pack s)
+
+-- | A record type representing full or partial configuration of an
+-- HTTP service. Remaining unspecified fields are filled in with the
+-- default values from Default.
+--
+data Conf = Conf
+  { _confFile     :: Maybe String   -- ^ Service configuration file location
+  , _confPort     :: Maybe Int      -- ^ Port to listen on
+  , _confTimeout  :: Maybe Int      -- ^ Connection timeout (sec)
+  , _confLogLevel :: Maybe LogLevel -- ^ Logging level
+  , _confAppName  :: Maybe Text     -- ^ Name of the application
+  } deriving ( Eq, Show )
+
+class HasConf a where
+  confId       :: Lens' a Conf
+  confFile     :: Lens' a (Maybe String)
+  confPort     :: Lens' a (Maybe Int)
+  confTimeout  :: Lens' a (Maybe Int)
+  confLogLevel :: Lens' a (Maybe LogLevel)
+  confAppName  :: Lens' a (Maybe Text)
+
+  confFile      = confId . lens _confFile     (\s a -> s { _confFile = a } )
+  confPort      = confId . lens _confPort     (\s a -> s { _confPort = a } )
+  confTimeout   = confId . lens _confTimeout  (\s a -> s { _confTimeout = a } )
+  confLogLevel  = confId . lens _confLogLevel (\s a -> s { _confLogLevel = a } )
+  confAppName   = confId . lens _confAppName  (\s a -> s { _confAppName = a } )
+
+type MonadConf a =
+  ( HasConf  a
+  , Default  a
+  , FromJSON a
+  , FromEnv  a
+  , Monoid   a
+  )
+
+data ConfException = MandatoryConfException String
+  deriving ( Show, Eq )
+
+instance Exception ConfException
+
+instance HasConf Conf where
+  confId = id
+
+instance Default Conf where
+  def = Conf
+    { _confFile     = Just "conf/dev.yaml"
+    , _confPort     = Just 5000
+    , _confTimeout  = Just 120
+    , _confLogLevel = Just LevelInfo
+    , _confAppName  = Nothing
+    }
+
+instance FromJSON Conf where
+  parseJSON (Object v) =
+    Conf                <$>
+      v .:? "conf-file" <*>
+      v .:? "port"      <*>
+      v .:? "timeout"   <*>
+      v .:? "log-level" <*>
+      v .:? "app-name"
+  parseJSON _ = mzero
+
+instance FromEnv Conf where
+  fromEnv =
+    Conf                           <$>
+      envMaybe "SKYLARK_CONF_FILE" <*>
+      envMaybe "SKYLARK_PORT"      <*>
+      envMaybe "SKYLARK_TIMEOUT"   <*>
+      envMaybe "SKYLARK_LOG_LEVEL" <*>
+      envMaybe "SKYLARK_APP_NAME"
+
+instance Monoid Conf where
+  mempty = Conf
+    { _confFile     = Nothing
+    , _confPort     = Nothing
+    , _confTimeout  = Nothing
+    , _confLogLevel = Nothing
+    , _confAppName  = Nothing
+    }
+
+  mappend a b = Conf
+    { _confFile     = merge _confFile a b
+    , _confPort     = merge _confPort a b
+    , _confTimeout  = merge _confTimeout a b
+    , _confLogLevel = merge _confLogLevel a b
+    , _confAppName  = merge _confAppName a b
+    }
+
+-- | Given a record field accessor. return the second non-Nothing
+-- Value for a record field.
+--
+merge :: (a -> Maybe b) -> a -> a -> Maybe b
+merge f a b = getLast $! (mappend `on` (Last . f)) a b
+
+--------------------------------------------------------------------------------
+-- Application context
+
 type Log = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
 newtype CoreT e m a = CoreT
@@ -52,17 +165,20 @@ newtype CoreT e m a = CoreT
              )
 
 data Ctx = Ctx
-  { _ctxEnv      :: Env
+  { _ctxConf     :: Conf
+  , _ctxEnv      :: Env
   , _ctxLog      :: Log
   , _ctxPreamble :: Text
   }
 
-class HasEnv a => HasCtx a where
+class (HasConf a, HasEnv a) => HasCtx a where
   ctxId         :: Lens' a Ctx
+  ctxConf       :: Lens' a Conf
   ctxEnv        :: Lens' a Env
   ctxLog        :: Lens' a Log
   ctxPreamble   :: Lens' a Text
 
+  ctxConf       = ctxId . lens _ctxConf       (\s a -> s { _ctxConf = a } )
   ctxEnv        = ctxId . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
   ctxLog        = ctxId . lens _ctxLog        (\s a -> s { _ctxLog = a } )
   ctxPreamble   = ctxId . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
@@ -72,6 +188,9 @@ instance HasCtx Ctx where
 
 instance HasEnv Ctx where
   environment = ctxEnv
+
+instance HasConf Ctx where
+  confId = ctxConf
 
 instance MonadBase b m => MonadBase b (CoreT r m) where
   liftBase = liftBaseDefault
@@ -188,103 +307,16 @@ instance FromJSON LogLevel where
   parseJSON (String s)       = return $ LevelOther s
   parseJSON _                = mzero
 
---------------------------------------------------------------------------------
--- Service configuration
-
-instance Var LogLevel where
-  toVar LevelDebug     = "debug"
-  toVar LevelInfo      = "info"
-  toVar LevelWarn      = "warn"
-  toVar LevelError     = "error"
-  toVar (LevelOther s) = unpack s
-
-  fromVar "debug" = return LevelDebug
-  fromVar "info"  = return LevelInfo
-  fromVar "warn"  = return LevelWarn
-  fromVar "error" = return LevelError
-  fromVar s       = return $ LevelOther (pack s)
-
--- | A record type representing full or partial configuration of an
--- HTTP service. Remaining unspecified fields are filled in with the
--- default values from Default.
+-- | Git tag version in information file.
 --
-data Conf = Conf
-  { _confFile     :: Maybe String   -- ^ Service configuration file location
-  , _confPort     :: Maybe Int      -- ^ Port to listen on
-  , _confTimeout  :: Maybe Int      -- ^ Connection timeout (sec)
-  , _confLogLevel :: Maybe LogLevel -- ^ Logging level
-  } deriving ( Eq, Show )
+newtype InfoFile = InfoFile
+  { _ifTag :: Text
+  }
 
-class HasConf a where
-  confId       :: Lens' a Conf
-  confFile     :: Lens' a (Maybe String)
-  confPort     :: Lens' a (Maybe Int)
-  confTimeout  :: Lens' a (Maybe Int)
-  confLogLevel :: Lens' a (Maybe LogLevel)
+$(makeLenses ''InfoFile)
 
-  confFile      = confId . lens _confFile     (\s a -> s { _confFile = a } )
-  confPort      = confId . lens _confPort     (\s a -> s { _confPort = a } )
-  confTimeout   = confId . lens _confTimeout  (\s a -> s { _confTimeout = a } )
-  confLogLevel  = confId . lens _confLogLevel (\s a -> s { _confLogLevel = a } )
-
-instance HasConf Conf where
-  confId = id
-
-instance Default Conf where
-  def = Conf
-    { _confFile     = Just "conf/dev.yaml"
-    , _confPort     = Just 5000
-    , _confTimeout  = Just 120
-    , _confLogLevel = Just LevelInfo
-    }
-
-instance FromJSON Conf where
+instance FromJSON InfoFile where
   parseJSON (Object v) =
-    Conf                <$>
-      v .:? "conf-file" <*>
-      v .:? "port"      <*>
-      v .:? "timeout"   <*>
-      v .:? "log-level"
+    InfoFile     <$>
+      v .: "tag"
   parseJSON _ = mzero
-
-instance FromEnv Conf where
-  fromEnv =
-    Conf                           <$>
-      envMaybe "SKYLARK_CONF_FILE" <*>
-      envMaybe "SKYLARK_PORT"      <*>
-      envMaybe "SKYLARK_TIMEOUT"   <*>
-      envMaybe "SKYLARK_LOG_LEVEL"
-
-instance Monoid Conf where
-  mempty = Conf
-    { _confFile     = Nothing
-    , _confPort     = Nothing
-    , _confTimeout  = Nothing
-    , _confLogLevel = Nothing
-    }
-
-  mappend a b = Conf
-    { _confFile     = merge _confFile a b
-    , _confPort     = merge _confPort a b
-    , _confTimeout  = merge _confTimeout a b
-    , _confLogLevel = merge _confLogLevel a b
-    }
-
--- | Given a record field accessor. return the second non-Nothing
--- Value for a record field.
---
-merge :: (a -> Maybe b) -> a -> a -> Maybe b
-merge f a b = getLast $! (mappend `on` (Last . f)) a b
-
-type MonadConf a =
-  ( HasConf  a
-  , Default  a
-  , FromJSON a
-  , FromEnv  a
-  , Monoid   a
-  )
-
-data ConfException = MandatoryConfException String
-  deriving ( Show, Eq )
-
-instance Exception ConfException

@@ -36,6 +36,7 @@ import Data.Time
 import Data.UUID
 import Network.AWS.DynamoDB
 import Network.Skylark.Core.Prelude
+import Network.Wai.Handler.Warp
 import System.Envy
 
 --------------------------------------------------------------------------------
@@ -169,6 +170,7 @@ data Ctx = Ctx
   , _ctxEnv      :: Env
   , _ctxLog      :: Log
   , _ctxPreamble :: Text
+  , _ctxSettings :: Settings
   }
 
 class (HasConf a, HasEnv a) => HasCtx a where
@@ -177,11 +179,13 @@ class (HasConf a, HasEnv a) => HasCtx a where
   ctxEnv        :: Lens' a Env
   ctxLog        :: Lens' a Log
   ctxPreamble   :: Lens' a Text
+  ctxSettings   :: Lens' a Settings
 
   ctxConf       = ctxId . lens _ctxConf       (\s a -> s { _ctxConf = a } )
   ctxEnv        = ctxId . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
   ctxLog        = ctxId . lens _ctxLog        (\s a -> s { _ctxLog = a } )
   ctxPreamble   = ctxId . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
+  ctxSettings   = ctxId . lens _ctxSettings   (\s a -> s { _ctxSettings = a } )
 
 instance HasCtx Ctx where
   ctxId = id

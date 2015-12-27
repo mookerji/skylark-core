@@ -38,8 +38,11 @@ newCtx :: Conf         -- ^ Service configuration
        -> IO Ctx
 newCtx c version tag = do
   name     <- mandatory "app-name" $ c ^. confAppName
+  port     <- mandatory "port"     $ c ^. confPort
+  timeout  <- mandatory "timeout"  $ c ^. confTimeout
   let _ctxConf     = c
       _ctxPreamble = preamble name
+      _ctxSettings = newSettings port timeout
   logLevel <- mandatory "log-level" $ c ^. confLogLevel
   _ctxEnv  <- newEnv Oregon $ FromEnv awsAccessKey awsSecretKey Nothing
   _ctxLog  <- newStderrTrace logLevel

@@ -1,3 +1,6 @@
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# OPTIONS  -fno-warn-orphans          #-}
+
 -- |
 -- Module:      Test.Network.Skylark.Core.Conf
 -- Copyright:   (c) 2015 Mark Fine
@@ -11,7 +14,8 @@ module Test.Network.Skylark.Core.Conf
   ) where
 
 import BasicPrelude
-import Control.Lens                   hiding ((.=))
+import Control.Applicative
+import Control.Lens                   hiding (set, (.=))
 import Control.Monad.Logger
 import Data.Default
 import Network.Skylark.Core.Conf
@@ -21,8 +25,13 @@ import Paths_skylark_core
 import System.Environment
 import System.Envy
 import Test.Network.Skylark.Core.Test
+import Test.QuickCheck
+import Test.QuickCheck.Instances      ()
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
+import Test.QuickCheck.Monadic
+
 
 {-# ANN module ("HLint: ignore Reduce duplication"::String) #-}
 
@@ -91,8 +100,6 @@ testLogLevel =
 --------------------------------------------------------------------------------
 -- Environmental parsing stuff
 
--- TOOD/FIX (Buro): This test occasionally fails because of a race
--- condition in System.Environment.
 testEnv :: TestTree
 testEnv =
   testGroup "Environmental configuration unit test"
@@ -216,22 +223,68 @@ testConfMonoid =
         b <> a @?= a
     ]
 
--- TOOD/FIX (Buro): This test occasionally fails because of a race
--- condition in System.Environment.
 testGetConf :: TestTree
 testGetConf =
   testGroup "Test parsing of a complete configuration"
     [ testCase "Sanity test on parsing of configuration with defaults" $ do
         unsetEnv "SKYLARK_CONF_FILE"
+        unsetEnv "SKYLARK_LOG_LEVEL"
         unsetEnv "SKYLARK_PORT"
         c <- getConf parseConf getDataFileName
         c @?= (def & confPort .~ Just 3030)
     , testCase "Sanity test on parsing of configuration with a non-default" $ do
         unsetEnv "SKYLARK_CONF_FILE"
+        unsetEnv "SKYLARK_LOG_LEVEL"
         setEnv "SKYLARK_PORT" "2222"
         c <- getConf parseConf getDataFileName
         c @?= (def & confPort .~ Just 2222)
     ]
+
+instance Arbitrary LogLevel where
+  arbitrary = do
+    n <- choose (0, 4) :: Gen Int
+    return $ case n of
+      0 -> LevelDebug
+      1 -> LevelInfo
+      2 -> LevelWarn
+      3 -> LevelError
+      4 -> LevelOther "other"
+      _ -> error "Impossible match!"
+
+maybeGen :: Gen a -> Gen (Maybe a)
+maybeGen x = oneof [ pure Nothing , Just <$> x ]
+
+nonEmptyString :: Gen String
+nonEmptyString = listOf1 arbitrary `suchThat` (not . ('\NUL' `elem`))
+
+instance Arbitrary Conf where
+  arbitrary = Conf                      <$>
+    maybeGen nonEmptyString             <*>
+    maybeGen arbitrary                  <*>
+    maybeGen arbitrary                  <*>
+    maybeGen arbitrary                  <*>
+    maybeGen (liftA txt nonEmptyString)
+
+testEnvProperties :: TestTree
+testEnvProperties = testGroup "(checked by QuickCheck)"
+  [ testProperty "Log Level environmental configuration" $
+      \(x :: LogLevel) -> Just x == fromVar (toVar x)
+  , testProperty "Configuration environmental configuration" $
+      \(c :: Conf) -> monadicIO $ do
+        res <- run $ do
+                  let Conf{..} = c
+                      set k = maybe (unsetEnv k) (setEnv k . toVar)
+                  set "SKYLARK_CONF_FILE" _confFile
+                  set "SKYLARK_PORT"      _confPort
+                  set "SKYLARK_TIMEOUT"   _confTimeout
+                  set "SKYLARK_LOG_LEVEL" _confLogLevel
+                  set "SKYLARK_APP_NAME"  _confAppName
+                  decodeEnv
+        Test.QuickCheck.Monadic.assert $ res == Right c
+  ]
+
+testProperties :: TestTree
+testProperties = testGroup "Properties" [ testEnvProperties ]
 
 tests :: TestTree
 tests =
@@ -241,8 +294,9 @@ tests =
     , testPort
     , testTimeout
     , testLogLevel
-    -- , testEnv
+    , testEnv
     , testDataFileFetch
     , testConfMonoid
-    -- , testGetConf
+    , testGetConf
+    , testProperties
     ]

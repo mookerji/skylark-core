@@ -8,6 +8,7 @@
 
 import           BasicPrelude
 import qualified Test.Network.Skylark.Core.Conf    as Conf
+import qualified Test.Network.Skylark.Core.Metrics as Metrics
 import qualified Test.Network.Skylark.Core.Retries as Retries
 import qualified Test.Network.Skylark.Core.Setup   as Setup
 import           Test.Tasty
@@ -16,6 +17,7 @@ tests :: TestTree
 tests = testGroup "Tests"
   [ Conf.tests
   , Retries.tests
+  , Metrics.tests
   , Setup.tests
   ]
 

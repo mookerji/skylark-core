@@ -2,6 +2,10 @@ resolver: lts-3.9
 packages:
 - '.'
 flags: {}
+extra-include-dirs:
+- /home/travis/.local/include
+extra-lib-dirs:
+- /home/travis/.local/lib
 extra-deps:
 - amazonka-1.3.2
 - amazonka-core-1.3.2

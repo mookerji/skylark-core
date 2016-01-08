@@ -14,9 +14,13 @@ module Network.Skylark.Core.Trace
   , newStdoutTrace
   , traceNull
   , traceDebug
+  , traceDebug'
   , traceInfo
+  , traceInfo'
   , traceWarn
+  , traceWarn'
   , traceError
+  , traceError'
   ) where
 
 import Control.Lens
@@ -57,11 +61,24 @@ trace logN s = do
 traceDebug :: MonadCore e m => Text -> m ()
 traceDebug = trace logDebugN
 
+traceDebug' :: Text -> IO ()
+traceDebug' s = newStderrTrace LevelDebug >>= runLoggingT (logDebugN s)
+
 traceInfo :: MonadCore e m => Text -> m ()
 traceInfo = trace logInfoN
+
+traceInfo' :: Text -> IO ()
+traceInfo' s = newStderrTrace LevelInfo >>= runLoggingT (logInfoN s)
 
 traceWarn :: MonadCore e m => Text -> m ()
 traceWarn = trace logWarnN
 
+traceWarn' :: Text -> IO ()
+traceWarn' s = newStderrTrace LevelWarn >>= runLoggingT (logWarnN s)
+
 traceError :: MonadCore e m => Text -> m ()
 traceError = trace logErrorN
+
+traceError' :: Text -> IO ()
+traceError' s = newStderrTrace LevelError >>= runLoggingT (logErrorN s)
+

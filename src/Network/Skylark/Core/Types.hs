@@ -24,9 +24,10 @@ import Control.Monad.Catch
 import Control.Monad.Logger
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.Trans.AWS      hiding (LogLevel)
+import Control.Monad.Trans.AWS      hiding (LogLevel, Request)
 import Control.Monad.Trans.Resource
 import Data.Aeson                   hiding ((.!=), (.=))
+import Data.CaseInsensitive
 import Data.Default
 import Data.Monoid
 import Data.Text                    (pack, unpack)
@@ -35,7 +36,9 @@ import Data.Text.Lazy.Builder       hiding (fromText)
 import Data.Time
 import Data.UUID
 import Network.AWS.DynamoDB
+import Network.HTTP.Types
 import Network.Skylark.Core.Prelude
+import Network.Wai
 import Network.Wai.Handler.Warp
 import System.Envy
 
@@ -295,6 +298,17 @@ instance Txt UUID where
 instance Txt UTCTime where
   txt time =
     txt $ formatTime defaultTimeLocale "%FT%T%z" time
+
+instance Txt HeaderName where
+  txt = decodeUtf8 . original
+
+instance Txt SomeException where
+  txt e = "'" <> show e <> "'"
+
+instance Txt Request where
+  txt req =
+    sformat ("method=" % stext % " path=" % stext)
+      (txt $ requestMethod req) (txt $ rawPathInfo req)
 
 instance ToJSON UUID where
   toJSON = toJSON . toText

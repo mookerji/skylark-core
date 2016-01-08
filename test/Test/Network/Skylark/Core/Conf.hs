@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS  -fno-warn-orphans          #-}
 
 -- |
@@ -27,10 +27,10 @@ import System.Envy
 import Test.Network.Skylark.Core.Test
 import Test.QuickCheck
 import Test.QuickCheck.Instances      ()
+import Test.QuickCheck.Monadic
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
-import Test.QuickCheck.Monadic
 
 
 {-# ANN module ("HLint: ignore Reduce duplication"::String) #-}

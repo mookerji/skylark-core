@@ -27,20 +27,22 @@ library
                      , Network.Skylark.Core.Types
                      , Network.Skylark.Core.Upserts
   ghc-options:         -Wall
-  build-depends:       aeson
+  build-depends:       MonadRandom
+                     , aeson
                      , amazonka
                      , amazonka-dynamodb
                      , base >= 4.7 && < 5
                      , basic-prelude
+                     , case-insensitive
                      , data-default
                      , envy
                      , exceptions
                      , fast-logger
                      , formatting
+                     , http-types
                      , lens
                      , monad-control
                      , monad-logger
-                     , MonadRandom
                      , mtl
                      , optparse-applicative
                      , resourcet
@@ -50,6 +52,7 @@ library
                      , transformers-base
                      , unordered-containers
                      , uuid
+                     , wai
                      , warp
                      , yaml
   default-language:    Haskell2010

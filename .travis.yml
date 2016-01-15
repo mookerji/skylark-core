@@ -19,7 +19,7 @@ before_install:
 install:
   - stack update
   - stack setup
-  - stack install hlint hpc-coveralls
+  - stack install hlint hpc-coveralls codecov-haskell
   - stack build skylark-core --only-dependencies
 
 script:
@@ -28,3 +28,4 @@ script:
 
 after_script:
   - hpc-coveralls --exclude-dir=test test
+  - codecov-haskell --exclude-dir=test test

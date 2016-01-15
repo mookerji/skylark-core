@@ -1,7 +1,7 @@
 # [Skylark Core][skylark-core-github]
 
 [![Build status][skylark-core-travis-img]][skylark-core-travis]
-[![Coverage status][skylark-core-coveralls-img][skylark-core-coveralls]
+[![Coverage status][skylark-core-coveralls-img]][skylark-core-coveralls]
 
 [skylark-core-github]: https://github.com/swift-nav/skylark-core
 [skylark-core-travis-img]: https://img.shields.io/travis/swift-nav/skylark-core/master.svg?style=flat

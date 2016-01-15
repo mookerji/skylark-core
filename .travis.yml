@@ -19,12 +19,12 @@ before_install:
 install:
   - stack update
   - stack setup
-  - stack install hlint
+  - stack install hlint hpc-coveralls
   - stack build skylark-core --only-dependencies
 
 script:
   - ./lint.sh
-  - printenv
-  # Unit tests require AWS keys in the environment, but somehow aren't
-  # picking them up in the env declaration abovel.
-  - AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test --bench
+  - AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test --coverage
+
+after_script:
+  - hpc-coveralls --exclude-dir=test test

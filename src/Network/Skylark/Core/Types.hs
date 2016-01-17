@@ -338,3 +338,33 @@ instance FromJSON InfoFile where
     InfoFile     <$>
       v .: "tag"
   parseJSON _ = mzero
+
+--------------------------------------------------------------------------------
+-- Retries
+
+data RetryState = RetryState
+  { _rsCount :: Word
+  , _rsDelay :: Maybe Word
+  , _rsTotal :: Word
+  } deriving ( Eq, Show )
+
+$(makeLenses ''RetryState)
+
+instance Default RetryState where
+  def = RetryState
+    { _rsCount = 0
+    , _rsDelay = Nothing
+    , _rsTotal = 0
+    }
+
+newtype RetryPolicy = RetryPolicy
+  { runRetryPolicy :: RetryState -> IO (Maybe Word)
+  }
+
+instance Monoid RetryPolicy where
+  mempty = RetryPolicy $ \state ->
+    return $ state ^. rsDelay
+  mappend policyA policyB = RetryPolicy $ \state -> do
+    delayA <- runRetryPolicy policyA state
+    delayB <- runRetryPolicy policyB state
+    return $ max <$> delayA <*> delayB

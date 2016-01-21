@@ -21,6 +21,7 @@ library
                      , Network.Skylark.Core.Constants
                      , Network.Skylark.Core.Maps
                      , Network.Skylark.Core.Prelude
+                     , Network.Skylark.Core.Retries
                      , Network.Skylark.Core.Setup
                      , Network.Skylark.Core.Timers
                      , Network.Skylark.Core.Trace
@@ -66,12 +67,14 @@ test-suite test
   main-is:             Test.hs
   other-modules:       Paths_skylark_core
                      , Test.Network.Skylark.Core.Conf
+                     , Test.Network.Skylark.Core.Retries
                      , Test.Network.Skylark.Core.Setup
                      , Test.Network.Skylark.Core.Test
   build-depends:       base
                      , basic-prelude
                      , data-default
                      , envy
+                     , exceptions
                      , lens
                      , monad-logger
                      , optparse-applicative

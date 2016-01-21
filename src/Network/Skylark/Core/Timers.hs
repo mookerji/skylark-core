@@ -13,18 +13,14 @@ module Network.Skylark.Core.Timers
 import Control.Monad.Random
 import Data.IORef
 import Data.Time
-import Network.Skylark.Core.Constants
 import Network.Skylark.Core.Prelude
 
--- | Jitter value by a random factor.
-jitter :: MonadRandom m => Double -> m Double
-jitter v = (* v) <$> getRandomR (1, 1 + jitterRate)
-
--- | Check timer and update if elapsed, run action if expired.
-whenExpires :: (MonadRandom m, MonadIO m) => UTCTime -> IORef UTCTime -> Double -> m () -> m ()
-whenExpires time expires interval a = do
+-- | Check timer and update if elapsed, run action if expired - interval is in microseconds.
+whenExpires :: (MonadIO m, MonadRandom m) => UTCTime -> IORef UTCTime -> Word -> m () -> m ()
+whenExpires time expires interval action = do
   expires' <- liftIO $ readIORef expires
   when (time >= expires') $ do
-    interval' <- jitter interval
-    liftIO $ writeIORef expires $ addUTCTime (fromRational $ toRational interval') time
-    a
+    interval' <- jitter
+    liftIO $ writeIORef expires $ addUTCTime (fromIntegral $ div interval' 1000000) time
+    action where
+      jitter = getRandomR (interval - div interval 10, interval + div interval 10)

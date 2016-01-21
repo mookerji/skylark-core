@@ -10,6 +10,7 @@ module Network.Skylark.Core.Retries
   ( retry
   , recover
   , recoverAll
+  , recoverEvery
   , constant
   , fixedDelay
   , exponentialBackoff
@@ -74,6 +75,11 @@ recover policy check action =
 --
 recoverAll :: (MonadIO m, MonadCatch m) => RetryPolicy -> (SomeException -> m Bool) -> m a -> m a
 recoverAll = recover
+
+-- | Recover every exception.
+--
+recoverEvery :: (MonadIO m, MonadCatch m) => RetryPolicy -> m a -> m a
+recoverEvery policy = recoverAll policy $ const $ return True
 
 -- | Constant policy.
 --

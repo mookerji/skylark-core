@@ -2,19 +2,30 @@ sudo: false
 
 language: c
 
+cache:
+  apt: true
+  directories:
+    - $HOME/.stack/
+
 addons:
   apt:
     packages:
     - libgmp-dev
 
-cache:
-  directories:
-    - $HOME/.stack/
+env:
+  - STACK_YAML=$TRAVIS_BUILD_DIR/stack-travis.yaml
 
 before_install:
-  - mkdir -p ~/.local/bin
+  # Install stack
+  - mkdir -p $HOME/.local/bin $HOME/.local/include $HOME/.local/lib
   - export PATH=~/.local/bin:$PATH
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.local/lib
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+  # Install libstatgrab
+  - travis_retry wget http://dl.ambiweb.de/mirrors/ftp.i-scream.org/libstatgrab/libstatgrab-0.90.tar.gz
+  - tar xvf libstatgrab-0.90.tar.gz
+  - cd libstatgrab-0.90/ && ./configure --prefix=$HOME/.local/ && make && make install
+  - cd ../
 
 install:
   - stack update

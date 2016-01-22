@@ -41,6 +41,7 @@ import Network.Skylark.Core.Prelude
 import Network.Wai
 import Network.Wai.Handler.Warp
 import System.Envy
+import System.Statgrab
 
 --------------------------------------------------------------------------------
 -- Service configuration
@@ -283,6 +284,9 @@ instance Txt Builder where
 instance Txt Double where
   txt = show
 
+instance Txt Integer where
+  txt = show
+
 instance Txt Word8 where
   txt = show
 
@@ -364,7 +368,121 @@ newtype RetryPolicy = RetryPolicy
 instance Monoid RetryPolicy where
   mempty = RetryPolicy $ \state ->
     return $ state ^. rsDelay
+
   mappend policyA policyB = RetryPolicy $ \state -> do
     delayA <- runRetryPolicy policyA state
     delayB <- runRetryPolicy policyB state
     return $ max <$> delayA <*> delayB
+
+--------------------------------------------------------------------------------
+-- Events: logging and metrics monitoring
+--
+-- The following describes a notion of an event that can be serialized
+-- out to a text log entry and text log entry corresponding to an
+-- metric. The intention here is that a logged events are collected
+-- with a log collector running on the host and forwarded to an ETL
+-- (e.g., AWS Kinesis, if running on AWS), which then dispatches
+-- logged events to another consumer (e.g., statsD for metrics logs.)
+--
+-- The model here is based on ghc-events and
+-- https://github.com/brendanhay/network-metrics/.
+
+-- | Host name
+--
+type HostName = ByteString
+
+-- | Metric group
+--
+type Group = Text
+
+-- | Metric bucket
+--
+type Bucket = ByteString
+
+-- | Metrics
+--
+-- These types are agnostic as to the metrics collector used, but are
+-- largely inspired by the types provided by StatsD (see:
+-- https://github.com/etsy/statsd/blob/master/docs/metric_types.md).
+-- Each of these metrics can be sampled with some annotation.
+--
+data Metric =
+  -- | A simple counter, set to 0 at each flush
+    Counter Group Bucket Integer
+  -- | A timing interval
+  | Timer   Group Bucket Double
+  -- | An arbitrary value that can be recorded
+  | Gauge   Group Bucket Double
+  -- | Counts unique occurrences of events between flushes.
+  | Set     Group Bucket Double
+    deriving (Show, Eq)
+
+-- | Class of measurable instances.
+--
+class Measurable a where
+  -- | Create a metric from some instance under some grouping
+  -- A group typically uniquely identifies a host and an application.
+  --
+  measure :: Group -> a -> [Metric]
+
+type SystemStat =
+  ( Host
+  , Memory
+  , Load
+  , [DiskIO]
+  , [NetworkIO]
+  )
+
+instance Txt Metric where
+  txt (Counter g b v) = sformat (stext % "." % stext % ":" % stext % "|c") g (txt b) (txt v)
+  txt (Timer   g b v) = sformat (stext % "." % stext % ":" % stext % "|t") g (txt b) (txt v)
+  txt (Gauge   g b v) = sformat (stext % "." % stext % ":" % stext % "|g") g (txt b) (txt v)
+  txt (Set     g b v) = sformat (stext % "." % stext % ":" % stext % "|s") g (txt b) (txt v)
+
+instance Measurable Host where
+  measure gr Host{..} =
+    [ Gauge gr "hostUptime" $ realToFrac hostUptime ]
+
+instance Measurable Memory where
+  measure gr Memory{..} =
+    [ Gauge gr "memTotal"        $ fromIntegral memTotal
+    , Gauge gr "memFreeFraction" $ fromIntegral memFree / fromIntegral memTotal
+    , Gauge gr "memFree"         $ fromIntegral memFree
+    , Gauge gr "memUsedFraction" $ fromIntegral memUsed / fromIntegral memTotal
+    , Gauge gr "memUsed"         $ fromIntegral memUsed
+    , Gauge gr "memCache"        $ fromIntegral memCache
+    ]
+
+instance Measurable Load where
+  measure gr Load{..} =
+    [ Gauge gr "load1"  load1
+    , Gauge gr "load5"  load5
+    , Gauge gr "load15" load15
+    ]
+
+instance Measurable DiskIO where
+  measure gr DiskIO{..} =
+    [ Gauge gr (diskName <> ".diskRead")  $ fromIntegral diskRead
+    , Gauge gr (diskName <> ".diskWrite") $ fromIntegral diskWrite
+    ]
+
+instance Measurable a => Measurable [a] where
+  measure gr = concatMap (measure gr)
+
+instance Measurable NetworkIO where
+  measure gr NetworkIO{..} =
+    [ Gauge gr (ifaceIOName <> ".ifaceTX")         $ fromIntegral ifaceTX
+    , Gauge gr (ifaceIOName <> ".ifaceRX")         $ fromIntegral ifaceRX
+    , Gauge gr (ifaceIOName <> ".ifaceIPackets")   $ fromIntegral ifaceIPackets
+    , Gauge gr (ifaceIOName <> ".ifaceOPackets")   $ fromIntegral ifaceOPackets
+    , Gauge gr (ifaceIOName <> ".ifaceIErrors")    $ fromIntegral ifaceIErrors
+    , Gauge gr (ifaceIOName <> ".ifaceCollisions") $ fromIntegral ifaceCollisions
+    ]
+
+instance Measurable SystemStat where
+  measure gr (h, m, l, d, n) =
+    measure gr h <>
+    measure gr m <>
+    measure gr l <>
+    measure gr d <>
+    measure gr n

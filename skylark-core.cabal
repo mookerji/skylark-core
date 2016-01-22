@@ -17,10 +17,12 @@ data-files:            conf/dev.yaml
 library
   hs-source-dirs:      src
   exposed-modules:     Network.Skylark.Core
+                     , Network.Skylark.Core.Async
                      , Network.Skylark.Core.Conf
                      , Network.Skylark.Core.Constants
                      , Network.Skylark.Core.Maps
                      , Network.Skylark.Core.Prelude
+                     , Network.Skylark.Core.Providers.StatGrab
                      , Network.Skylark.Core.Retries
                      , Network.Skylark.Core.Setup
                      , Network.Skylark.Core.Timers
@@ -32,6 +34,7 @@ library
                      , aeson
                      , amazonka
                      , amazonka-dynamodb
+                     , async
                      , base >= 4.7 && < 5
                      , basic-prelude
                      , case-insensitive
@@ -48,6 +51,7 @@ library
                      , optparse-applicative
                      , resourcet
                      , stm
+                     , statgrab
                      , text
                      , time
                      , transformers-base
@@ -67,6 +71,7 @@ test-suite test
   main-is:             Test.hs
   other-modules:       Paths_skylark_core
                      , Test.Network.Skylark.Core.Conf
+                     , Test.Network.Skylark.Core.Metrics
                      , Test.Network.Skylark.Core.Retries
                      , Test.Network.Skylark.Core.Setup
                      , Test.Network.Skylark.Core.Test

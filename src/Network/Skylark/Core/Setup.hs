@@ -8,16 +8,18 @@
 -- setting up application context.
 
 module Network.Skylark.Core.Setup
-  ( newSettings
+  ( checkHealth
   , newCtx
+  , newSettings
   ) where
 
 import Control.Lens
-import Control.Monad.Trans.AWS        hiding (timeout)
+import Control.Monad.Trans.AWS                 hiding (timeout)
 import Data.Text
 import Network.Skylark.Core.Conf
 import Network.Skylark.Core.Constants
 import Network.Skylark.Core.Prelude
+import Network.Skylark.Core.Providers.StatGrab
 import Network.Skylark.Core.Trace
 import Network.Skylark.Core.Types
 import Network.Wai.Handler.Warp
@@ -50,3 +52,11 @@ newCtx c version tag = do
     preamble name =
       sformat ("n=" % stext % " v=" % stext % " t=" % stext)
         name version tag
+
+-- Emit a health check metrics
+--
+checkHealth :: MonadCore e m => m ()
+checkHealth = do
+  gr <- getEventGroup
+  s  <- runStats sampleStats
+  mapM_ traceMetric $ measure gr s

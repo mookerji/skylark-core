@@ -38,5 +38,5 @@ script:
   - AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test --coverage
 
 after_script:
-  - hpc-coveralls --exclude-dir=test test
-  - codecov-haskell --exclude-dir=test test
+  - stack exec hpc-coveralls test -- --exclude-dir=test
+  - stack exec codecov-haskell test -- --exclude-dir=test

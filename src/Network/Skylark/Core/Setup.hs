@@ -11,18 +11,24 @@ module Network.Skylark.Core.Setup
   ( checkHealth
   , newCtx
   , newSettings
+  , withHealthCheck
   ) where
 
+import Control.Concurrent.Async
 import Control.Lens
 import Control.Monad.Trans.AWS                 hiding (timeout)
 import Data.Text
+import Network.Skylark.Core
+import Network.Skylark.Core.Async
 import Network.Skylark.Core.Conf
 import Network.Skylark.Core.Constants
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Providers.StatGrab
 import Network.Skylark.Core.Trace
-import Network.Skylark.Core.Types
 import Network.Wai.Handler.Warp
+
+--------------------------------------------------------------------------------
+-- Setup for application context
 
 -- | Setup WAI settings
 --
@@ -53,10 +59,22 @@ newCtx c version tag = do
       sformat ("n=" % stext % " v=" % stext % " t=" % stext)
         name version tag
 
+-- | Core context with some periodic health checking.
+--
+withHealthCheck :: HasCtx e => e -> IO b -> IO b
+withHealthCheck ctx action =
+  withAsync action $ \a ->
+    withPeriodic healthCheckInterval (checkHealth ctx) $ \b ->
+      wait b >> wait a
+
+--------------------------------------------------------------------------------
+-- Setup for health monitoring
+
 -- Emit a health check metrics
 --
-checkHealth :: MonadCore e m => m ()
-checkHealth = do
-  gr <- getEventGroup
-  s  <- runStats sampleStats
-  mapM_ traceMetric $ measure gr s
+checkHealth :: HasCtx e => e -> IO ()
+checkHealth ctx =
+  runCoreIO ctx $ do
+    gr <- getEventGroup
+    s  <- runStats sampleStats
+    mapM_ traceMetric $ measure gr s

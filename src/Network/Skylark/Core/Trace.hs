@@ -71,7 +71,7 @@ trace logN s = do
 
 trace' :: MonadIO m => (Text -> m b) -> Text -> m b
 trace' logN s = do
-  time <- liftIO $ getCurrentTime
+  time <- liftIO getCurrentTime
   logN $ sformat (stext % " " % stext % "\n")
     (txt time) s
 

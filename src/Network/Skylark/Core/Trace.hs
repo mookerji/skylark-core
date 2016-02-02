@@ -69,29 +69,35 @@ trace logN s = do
   logN $ sformat (stext % " " % stext % " " % stext % "\n")
     (txt time) preamble s
 
+trace' :: MonadIO m => (Text -> m b) -> Text -> m b
+trace' logN s = do
+  time <- liftIO $ getCurrentTime
+  logN $ sformat (stext % " " % stext % "\n")
+    (txt time) s
+
 traceDebug :: MonadCore e m => Text -> m ()
 traceDebug = trace logDebugN
 
 traceDebug' :: Text -> IO ()
-traceDebug' s = newStderrTrace LevelDebug >>= runLoggingT (logDebugN s)
+traceDebug' s = newStderrTrace LevelDebug >>= runLoggingT (trace' logDebugN s)
 
 traceInfo :: MonadCore e m => Text -> m ()
 traceInfo = trace logInfoN
 
 traceInfo' :: Text -> IO ()
-traceInfo' s = newStderrTrace LevelInfo >>= runLoggingT (logInfoN s)
+traceInfo' s = newStderrTrace LevelInfo >>= runLoggingT (trace' logInfoN s)
 
 traceWarn :: MonadCore e m => Text -> m ()
 traceWarn = trace logWarnN
 
 traceWarn' :: Text -> IO ()
-traceWarn' s = newStderrTrace LevelWarn >>= runLoggingT (logWarnN s)
+traceWarn' s = newStderrTrace LevelWarn >>= runLoggingT (trace' logWarnN s)
 
 traceError :: MonadCore e m => Text -> m ()
 traceError = trace logErrorN
 
 traceError' :: Text -> IO ()
-traceError' s = newStderrTrace LevelError >>= runLoggingT (logErrorN s)
+traceError' s = newStderrTrace LevelError >>= runLoggingT (trace' logErrorN s)
 
 --------------------------------------------------------------------------------
 -- Event logging: emit metrics to the application log.

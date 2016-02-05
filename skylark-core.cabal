@@ -76,6 +76,7 @@ test-suite test
                      , Test.Network.Skylark.Core.Metrics
                      , Test.Network.Skylark.Core.Retries
                      , Test.Network.Skylark.Core.Setup
+                     , Test.Network.Skylark.Core.TChans
                      , Test.Network.Skylark.Core.Test
   build-depends:       base
                      , basic-prelude

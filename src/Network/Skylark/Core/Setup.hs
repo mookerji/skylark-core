@@ -18,6 +18,7 @@ import Control.Concurrent.Async
 import Control.Lens
 import Control.Monad.Trans.AWS                 hiding (timeout)
 import Data.Text
+import Data.Time
 import Network.Skylark.Core
 import Network.Skylark.Core.Async
 import Network.Skylark.Core.Conf
@@ -45,15 +46,16 @@ newCtx :: Conf         -- ^ Service configuration
        -> Text         -- ^ Git tag
        -> IO Ctx
 newCtx c version tag = do
-  name     <- mandatory "app-name" $ c ^. confAppName
-  port     <- mandatory "port"     $ c ^. confPort
-  timeout  <- mandatory "timeout"  $ c ^. confTimeout
+  name    <- mandatory "app-name" $ c ^. confAppName
+  port    <- mandatory "port"     $ c ^. confPort
+  timeout <- mandatory "timeout"  $ c ^. confTimeout
   let _ctxConf     = c
       _ctxPreamble = preamble name
       _ctxSettings = newSettings port timeout
-  logLevel <- mandatory "log-level" $ c ^. confLogLevel
-  _ctxEnv  <- newEnv Oregon $ FromEnv awsAccessKey awsSecretKey Nothing
-  _ctxLog  <- newStderrTrace logLevel
+  logLevel  <- mandatory "log-level" $ c ^. confLogLevel
+  _ctxEnv   <- newEnv Oregon $ FromEnv awsAccessKey awsSecretKey Nothing
+  _ctxLog   <- newStderrTrace logLevel
+  _ctxStart <- getCurrentTime
   return Ctx {..} where
     preamble name =
       sformat ("n=" % stext % " v=" % stext % " t=" % stext)

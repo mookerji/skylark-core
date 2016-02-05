@@ -175,21 +175,24 @@ data Ctx = Ctx
   , _ctxLog      :: Log
   , _ctxPreamble :: Text
   , _ctxSettings :: Settings
+  , _ctxStart    :: UTCTime
   }
 
 class (HasConf a, HasEnv a) => HasCtx a where
-  ctxId         :: Lens' a Ctx
-  ctxConf       :: Lens' a Conf
-  ctxEnv        :: Lens' a Env
-  ctxLog        :: Lens' a Log
-  ctxPreamble   :: Lens' a Text
-  ctxSettings   :: Lens' a Settings
+  ctxId       :: Lens' a Ctx
+  ctxConf     :: Lens' a Conf
+  ctxEnv      :: Lens' a Env
+  ctxLog      :: Lens' a Log
+  ctxPreamble :: Lens' a Text
+  ctxSettings :: Lens' a Settings
+  ctxStart    :: Lens' a UTCTime
 
-  ctxConf       = ctxId . lens _ctxConf       (\s a -> s { _ctxConf = a } )
-  ctxEnv        = ctxId . lens _ctxEnv        (\s a -> s { _ctxEnv = a } )
-  ctxLog        = ctxId . lens _ctxLog        (\s a -> s { _ctxLog = a } )
-  ctxPreamble   = ctxId . lens _ctxPreamble   (\s a -> s { _ctxPreamble = a } )
-  ctxSettings   = ctxId . lens _ctxSettings   (\s a -> s { _ctxSettings = a } )
+  ctxConf     = ctxId . lens _ctxConf     (\s a -> s { _ctxConf = a } )
+  ctxEnv      = ctxId . lens _ctxEnv      (\s a -> s { _ctxEnv = a } )
+  ctxLog      = ctxId . lens _ctxLog      (\s a -> s { _ctxLog = a } )
+  ctxPreamble = ctxId . lens _ctxPreamble (\s a -> s { _ctxPreamble = a } )
+  ctxSettings = ctxId . lens _ctxSettings (\s a -> s { _ctxSettings = a } )
+  ctxStart    = ctxId . lens _ctxStart    (\s a -> s { _ctxStart = a } )
 
 instance HasCtx Ctx where
   ctxId = id

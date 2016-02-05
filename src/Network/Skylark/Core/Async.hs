@@ -1,5 +1,5 @@
 -- |
--- Module:      Network.Skylark.Core.Prelude
+-- Module:      Network.Skylark.Core.Async
 -- Copyright:   (c) 2015 Mark Fine
 -- License:     BSD3
 -- Maintainer:  Mark Fine <mark@swift-nav.com>

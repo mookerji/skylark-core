@@ -25,11 +25,12 @@ library
                      , Network.Skylark.Core.Providers.StatGrab
                      , Network.Skylark.Core.Retries
                      , Network.Skylark.Core.Setup
+                     , Network.Skylark.Core.TChans
                      , Network.Skylark.Core.Timers
                      , Network.Skylark.Core.Trace
                      , Network.Skylark.Core.Types
                      , Network.Skylark.Core.Upserts
-  ghc-options:         -Wall
+  ghc-options:         -Wall -O2
   build-depends:       MonadRandom
                      , aeson
                      , amazonka
@@ -38,6 +39,7 @@ library
                      , base >= 4.7 && < 5
                      , basic-prelude
                      , case-insensitive
+                     , conduit
                      , data-default
                      , envy
                      , exceptions
@@ -50,8 +52,8 @@ library
                      , mtl
                      , optparse-applicative
                      , resourcet
-                     , stm
                      , statgrab
+                     , stm
                      , text
                      , time
                      , transformers-base

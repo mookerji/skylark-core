@@ -12,9 +12,6 @@ addons:
     packages:
     - libgmp-dev
 
-env:
-  - STACK_YAML=$TRAVIS_BUILD_DIR/stack-travis.yaml
-
 before_install:
   # Install stack
   - mkdir -p $HOME/.local/bin $HOME/.local/include $HOME/.local/lib
@@ -24,19 +21,15 @@ before_install:
   # Install libstatgrab
   - travis_retry wget http://dl.ambiweb.de/mirrors/ftp.i-scream.org/libstatgrab/libstatgrab-0.90.tar.gz
   - tar xvf libstatgrab-0.90.tar.gz
-  - cd libstatgrab-0.90/ && ./configure --prefix=$HOME/.local/ && make && make install
-  - cd ../
+  - (cd libstatgrab-0.90/ && ./configure --prefix=$HOME/.local/ && make && make install)
 
 install:
+  - cat .travis/stack.yaml >> stack.yaml
   - stack update
   - stack setup
-  - stack install hlint hpc-coveralls codecov-haskell
+  - stack install hlint
   - stack build skylark-core --only-dependencies
 
 script:
   - ./lint.sh
-  - AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test --coverage
-
-after_script:
-  - stack exec hpc-coveralls test -- --exclude-dir=test
-  - stack exec codecov-haskell test -- --exclude-dir=test
+  - AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test

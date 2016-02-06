@@ -171,10 +171,6 @@ newtype CoreT e m a = CoreT
              , MonadLogger
              )
 
-instance MonadError e m => MonadError e (CoreT r m) where
-  throwError = lift . throwError
-  catchError m f = CoreT (unCoreT m `catchError` (unCoreT . f))
-
 data Ctx = Ctx
   { _ctxConf     :: Conf
   , _ctxEnv      :: Env
@@ -228,6 +224,10 @@ instance MonadRandom m => MonadRandom (CoreT r m) where
   getRandomR  = lift . getRandomR
   getRandoms  = lift getRandoms
   getRandomRs = lift . getRandomRs
+
+instance MonadError e m => MonadError e (CoreT r m) where
+  throwError = lift . throwError
+  catchError m f = CoreT (unCoreT m `catchError` (unCoreT . f))
 
 instance MonadRandom m => MonadRandom (ResourceT m) where
   getRandom   = lift getRandom

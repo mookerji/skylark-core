@@ -40,6 +40,7 @@ library
                      , case-insensitive
                      , data-default
                      , envy
+                     , either
                      , exceptions
                      , fast-logger
                      , formatting

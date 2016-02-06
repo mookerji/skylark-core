@@ -21,10 +21,12 @@ module Network.Skylark.Core.Types where
 import Control.Lens                 hiding ((.=))
 import Control.Monad.Base
 import Control.Monad.Catch
+import Control.Monad.Error.Class
 import Control.Monad.Logger
 import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.Trans.AWS      hiding (LogLevel, Request)
+import Control.Monad.Trans.Either
 import Control.Monad.Trans.Resource
 import Data.Aeson                   hiding ((.!=), (.=))
 import Data.CaseInsensitive
@@ -37,7 +39,7 @@ import Data.Time
 import Data.UUID
 import Network.AWS.DynamoDB
 import Network.HTTP.Types
-import Network.Skylark.Core.Prelude
+import Network.Skylark.Core.Prelude hiding (mask, uninterruptibleMask)
 import Network.Wai
 import Network.Wai.Handler.Warp
 import System.Envy
@@ -222,6 +224,10 @@ instance MonadRandom m => MonadRandom (CoreT r m) where
   getRandomR  = lift . getRandomR
   getRandoms  = lift getRandoms
   getRandomRs = lift . getRandomRs
+
+instance MonadError e m => MonadError e (CoreT r m) where
+  throwError = lift . throwError
+  catchError m f = CoreT (unCoreT m `catchError` (unCoreT . f))
 
 instance MonadRandom m => MonadRandom (ResourceT m) where
   getRandom   = lift getRandom
@@ -489,3 +495,10 @@ instance Measurable SystemStat where
     measure gr l <>
     measure gr d <>
     measure gr n
+
+instance MonadMask m => MonadMask (EitherT err m) where
+  mask act = EitherT $ mask $ \restore ->
+    runEitherT $ act (EitherT . restore . runEitherT)
+
+  uninterruptibleMask act = EitherT $ uninterruptibleMask $ \restore ->
+    runEitherT $ act (EitherT . restore . runEitherT)

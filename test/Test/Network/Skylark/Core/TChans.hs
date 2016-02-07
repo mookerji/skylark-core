@@ -17,12 +17,51 @@ import Test.QuickCheck.Monadic
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
+writesRead :: Int -> Int -> Int -> IO [Int]
+writesRead n x y = atomically $ do
+  wc <- newTWChan $ fromIntegral n
+  xc <- newTXChan wc
+  forM_ (take x [1..]) (writeTWChan wc)
+  catMaybes <$> replicateM y (tryReadTXChan xc)
+
 writesReads :: Int -> Int -> Int -> Int -> IO [[Int]]
 writesReads n r x y = atomically $ do
   wc  <- newTWChan $ fromIntegral n
   rcs <- replicateM r (newTRChan wc)
   forM_ (take x [1..]) (writeTWChan wc)
   forM rcs $ (catMaybes <$>) . replicateM y . tryReadTRChan
+
+testWriterReader :: TestTree
+testWriterReader =
+  testGroup "Writer reader tests"
+    [ testProperty "Empty write chan" $
+        \n m -> monadicIO $ do
+          as <- run $ writesRead n 0 m
+          assert $ as == []
+    , testProperty "0 length write chan" $
+        \n m -> monadicIO $ do
+          pre $ n > 0
+          as <- run $ writesRead 0 n m
+          assert $ as == []
+    , testProperty "1 length write chan with n writes" $
+        \n m -> monadicIO $ do
+          pre $ n > 0
+          pre $ m > 0
+          as <- run $ writesRead 1 n m
+          assert $ as == [n]
+    , testProperty "n length write chan with less than n writes" $
+        \n m -> monadicIO $ do
+          pre $ n > 0
+          pre $ m <= n
+          as <- run $ writesRead n m m
+          assert $ as == take m [1..]
+    , testProperty "n length write chan with greater then n writes" $
+        \n m -> monadicIO $ do
+          pre $ n > 0
+          pre $ m > n
+          as <- run $ writesRead n m m
+          assert $ as == take n (drop (m - n) [1..])
+    ]
 
 testWriterReaders :: TestTree
 testWriterReaders =
@@ -59,6 +98,7 @@ testWriterReaders =
 tests :: TestTree
 tests =
   testGroup "TChans tests"
-    [ testWriterReaders
+    [ testWriterReader
+    , testWriterReaders
     ]
 

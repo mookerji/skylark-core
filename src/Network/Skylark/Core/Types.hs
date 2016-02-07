@@ -400,12 +400,21 @@ data TRChan a = TRChan {-# UNPACK #-} !(TVar (TVarList a))
                        {-# UNPACK #-} !(TVar (TVarList a))
   deriving (Eq, Typeable)
 
+data TXChan a = TXChan {-# UNPACK #-} !(TVar Word)
+                       {-# UNPACK #-} !(TVar (TVarList a))
+                       {-# UNPACK #-} !(TVar (TVarList a))
+  deriving (Eq, Typeable)
+
 data TWMChan a = TWMChan {-# UNPACK #-} !(TVar Bool)
                          {-# UNPACK #-} !(TWChan a)
   deriving (Eq, Typeable)
 
 data TRMChan a = TRMChan {-# UNPACK #-} !(TVar Bool)
                          {-# UNPACK #-} !(TRChan a)
+  deriving (Eq, Typeable)
+
+data TXMChan a = TXMChan {-# UNPACK #-} !(TVar Bool)
+                         {-# UNPACK #-} !(TXChan a)
   deriving (Eq, Typeable)
 
 --------------------------------------------------------------------------------

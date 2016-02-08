@@ -6,7 +6,26 @@
 --
 -- TChans module for Skylark Core.
 
-module Network.Skylark.Core.TChans where
+module Network.Skylark.Core.TChans
+  ( newTBChan
+  , newTMChan
+  , newTSChan
+  , writeTBChan
+  , readTMChan
+  , tryReadTMChan
+  , readTSChan
+  , tryReadTSChan
+  , newTBCChan
+  , newTMCChan
+  , newTSCChan
+  , writeTBCChan
+  , closeTBCChan
+  , sinkTBCChan
+  , readTMCChan
+  , sourceTMCChan
+  , readTSCChan
+  , sourceTSCChan
+  ) where
 
 import           Control.Concurrent.STM
 import           Data.Conduit

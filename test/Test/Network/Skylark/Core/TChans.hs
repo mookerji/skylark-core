@@ -37,12 +37,12 @@ testWriterReader =
     [ testProperty "Empty write chan" $
         \n m -> monadicIO $ do
           as <- run $ writesRead n 0 m
-          assert $ as == []
+          assert $ null as
     , testProperty "0 length write chan" $
         \n m -> monadicIO $ do
           pre $ n > 0
           as <- run $ writesRead 0 n m
-          assert $ as == []
+          assert $ null as
     , testProperty "1 length write chan with n writes" $
         \n m -> monadicIO $ do
           pre $ n > 0

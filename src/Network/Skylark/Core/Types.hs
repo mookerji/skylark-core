@@ -391,21 +391,30 @@ type TVarList a = TVar (TList a)
 
 data TList a = TNil | TNull | TCons a {-# UNPACK #-} !(TVarList a)
 
-data TWChan a = TWChan {-# UNPACK #-} !(TVar Word)
+data TBChan a = TBChan {-# UNPACK #-} !(TVar Word)
                        {-# UNPACK #-} !(TVar (TVarList a))
                        {-# UNPACK #-} !(TVar (TVarList a))
   deriving (Eq, Typeable)
 
-data TRChan a = TRChan {-# UNPACK #-} !(TVar (TVarList a))
+data TMChan a = TMChan {-# UNPACK #-} !(TVar (TVarList a))
                        {-# UNPACK #-} !(TVar (TVarList a))
   deriving (Eq, Typeable)
 
-data TWMChan a = TWMChan {-# UNPACK #-} !(TVar Bool)
-                         {-# UNPACK #-} !(TWChan a)
+data TSChan a = TSChan {-# UNPACK #-} !(TVar Word)
+                       {-# UNPACK #-} !(TVar (TVarList a))
+                       {-# UNPACK #-} !(TVar (TVarList a))
   deriving (Eq, Typeable)
 
-data TRMChan a = TRMChan {-# UNPACK #-} !(TVar Bool)
-                         {-# UNPACK #-} !(TRChan a)
+data TBCChan a = TBCChan {-# UNPACK #-} !(TVar Bool)
+                         {-# UNPACK #-} !(TBChan a)
+  deriving (Eq, Typeable)
+
+data TMCChan a = TMCChan {-# UNPACK #-} !(TVar Bool)
+                         {-# UNPACK #-} !(TMChan a)
+  deriving (Eq, Typeable)
+
+data TSCChan a = TSCChan {-# UNPACK #-} !(TVar Bool)
+                         {-# UNPACK #-} !(TSChan a)
   deriving (Eq, Typeable)
 
 --------------------------------------------------------------------------------

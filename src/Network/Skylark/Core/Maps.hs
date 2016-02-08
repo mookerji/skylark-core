@@ -9,6 +9,7 @@
 module Network.Skylark.Core.Maps
   ( get
   , put
+  , tryPut
   , remove
   , list
   ) where
@@ -29,6 +30,14 @@ put m k v =
   liftIO $ atomically $ do
     n <- readTVar m
     writeTVar m $ M.insert k v n
+
+tryPut :: MonadMap k m => TVar (HashMap k v) -> k -> v -> m Bool
+tryPut m k v =
+  liftIO $ atomically $ do
+    n <- readTVar m
+    if M.member k n then return False else do
+      writeTVar m $ M.insert k v n
+      return True
 
 remove :: MonadMap k m => TVar (HashMap k v) -> k -> m ()
 remove m k =

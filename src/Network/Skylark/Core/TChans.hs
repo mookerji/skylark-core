@@ -7,18 +7,18 @@
 -- TChans module for Skylark Core.
 
 module Network.Skylark.Core.TChans
-  ( newTBChan
-  , newTMChan
-  , writeTBChan
-  , readTMChan
-  , tryReadTMChan
-  , newTBCChan
-  , newTMCChan
-  , writeTBCChan
-  , closeTBCChan
-  , sinkTBCChan
-  , readTMCChan
-  , sourceTMCChan
+  ( newTWChan
+  , newTRChan
+  , writeTWChan
+  , readTRChan
+  , tryReadTRChan
+  , newTWCChan
+  , newTRCChan
+  , writeTWCChan
+  , closeTWCChan
+  , sinkTWCChan
+  , readTRCChan
+  , sourceTRCChan
   ) where
 
 import           Control.Concurrent.STM
@@ -29,22 +29,22 @@ import           Network.Skylark.Core.Types
 
 {-# ANN module ("HLint: ignore Reduce duplication"::String) #-}
 
-newTBChan :: Word -> STM (TBChan a)
-newTBChan n = do
+newTWChan :: Word -> STM (TWChan a)
+newTWChan n = do
   count <- newTVar n
   hole  <- newTVar TNil
   first <- newTVar hole
   last  <- newTVar hole
-  return (TBChan count first last)
+  return (TWChan count first last)
 
-newTMChan :: TBChan a -> STM (TMChan a)
-newTMChan (TBChan _count first last) = do
+newTRChan :: TWChan a -> STM (TRChan a)
+newTRChan (TWChan _count first last) = do
   hole      <- readTVar last
   new_first <- newTVar hole
-  return (TMChan new_first first)
+  return (TRChan new_first first)
 
-writeTBChan :: TBChan a -> a -> STM ()
-writeTBChan (TBChan count first last) a = do
+writeTWChan :: TWChan a -> a -> STM ()
+writeTWChan (TWChan count first last) a = do
   new_listend <- newTVar TNil
   listend     <- readTVar last
   writeTVar listend (TCons a new_listend)
@@ -58,8 +58,8 @@ writeTBChan (TBChan count first last) a = do
       _tl           -> return ()
     writeTVar listhead TNull
 
-readTMChan :: TMChan a -> STM a
-readTMChan (TMChan first last) =
+readTRChan :: TRChan a -> STM a
+readTRChan (TRChan first last) =
   loop where
     loop = do
       listhead <- readTVar first
@@ -74,8 +74,8 @@ readTMChan (TMChan first last) =
           writeTVar first tail
           return a
 
-tryReadTMChan :: TMChan a -> STM (Maybe a)
-tryReadTMChan (TMChan first last) =
+tryReadTRChan :: TRChan a -> STM (Maybe a)
+tryReadTRChan (TRChan first last) =
   loop where
     loop = do
       listhead <- readTVar first
@@ -90,39 +90,39 @@ tryReadTMChan (TMChan first last) =
           writeTVar first tail
           return $ Just a
 
-newTBCChan :: Word -> STM (TBCChan a)
-newTBCChan n = do
+newTWCChan :: Word -> STM (TWCChan a)
+newTWCChan n = do
   closed <- newTVar False
-  chan   <- newTBChan n
-  return (TBCChan closed chan)
+  chan   <- newTWChan n
+  return (TWCChan closed chan)
 
-newTMCChan :: TBCChan a -> STM (TMCChan a)
-newTMCChan (TBCChan closed chan) = do
-  new_chan <- newTMChan chan
-  return (TMCChan closed new_chan)
+newTRCChan :: TWCChan a -> STM (TRCChan a)
+newTRCChan (TWCChan closed chan) = do
+  new_chan <- newTRChan chan
+  return (TRCChan closed new_chan)
 
-writeTBCChan :: TBCChan a -> a -> STM ()
-writeTBCChan (TBCChan closed chan) a = do
+writeTWCChan :: TWCChan a -> a -> STM ()
+writeTWCChan (TWCChan closed chan) a = do
   b <- readTVar closed
-  unless b $ writeTBChan chan a
+  unless b $ writeTWChan chan a
 
-closeTBCChan :: TBCChan a -> STM ()
-closeTBCChan (TBCChan closed _chan) =
+closeTWCChan :: TWCChan a -> STM ()
+closeTWCChan (TWCChan closed _chan) =
   writeTVar closed True
 
-sinkTBCChan :: MonadIO m => TBCChan a -> Sink a m ()
-sinkTBCChan chan = do
-  CL.mapM_ $ liftIO . atomically . writeTBCChan chan
-  liftIO $ atomically $ closeTBCChan chan
+sinkTWCChan :: MonadIO m => TWCChan a -> Sink a m ()
+sinkTWCChan chan = do
+  CL.mapM_ $ liftIO . atomically . writeTWCChan chan
+  liftIO $ atomically $ closeTWCChan chan
 
-readTMCChan :: TMCChan a -> STM (Maybe a)
-readTMCChan (TMCChan closed chan) = do
+readTRCChan :: TRCChan a -> STM (Maybe a)
+readTRCChan (TRCChan closed chan) = do
   b <- readTVar closed
-  if b then tryReadTMChan chan else Just <$> readTMChan chan
+  if b then tryReadTRChan chan else Just <$> readTRChan chan
 
-sourceTMCChan :: MonadIO m => TMCChan a -> Source m a
-sourceTMCChan chan =
+sourceTRCChan :: MonadIO m => TRCChan a -> Source m a
+sourceTRCChan chan =
   loop where
     loop = do
-      a <- liftIO $ atomically $ readTMCChan chan
+      a <- liftIO $ atomically $ readTRCChan chan
       maybe (return ()) ((>> loop) . yield) a

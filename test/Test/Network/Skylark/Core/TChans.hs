@@ -19,10 +19,10 @@ import Test.Tasty.QuickCheck
 
 writesReads :: Int -> Int -> Int -> Int -> IO [[Int]]
 writesReads n r x y = atomically $ do
-  wc  <- newTBChan $ fromIntegral n
-  rcs <- replicateM r (newTMChan wc)
-  forM_ (take x [1..]) (writeTBChan wc)
-  forM rcs $ (catMaybes <$>) . replicateM y . tryReadTMChan
+  wc  <- newTWChan $ fromIntegral n
+  rcs <- replicateM r (newTRChan wc)
+  forM_ (take x [1..]) (writeTWChan wc)
+  forM rcs $ (catMaybes <$>) . replicateM y . tryReadTRChan
 
 testWriterReaders :: TestTree
 testWriterReaders =

@@ -9,22 +9,16 @@
 module Network.Skylark.Core.TChans
   ( newTBChan
   , newTMChan
-  , newTSChan
   , writeTBChan
   , readTMChan
   , tryReadTMChan
-  , readTSChan
-  , tryReadTSChan
   , newTBCChan
   , newTMCChan
-  , newTSCChan
   , writeTBCChan
   , closeTBCChan
   , sinkTBCChan
   , readTMCChan
   , sourceTMCChan
-  , readTSCChan
-  , sourceTSCChan
   ) where
 
 import           Control.Concurrent.STM
@@ -48,12 +42,6 @@ newTMChan (TBChan _count first last) = do
   hole      <- readTVar last
   new_first <- newTVar hole
   return (TMChan new_first first)
-
-newTSChan :: TBChan a -> STM (TSChan a)
-newTSChan (TBChan count first last) = do
-  hole      <- readTVar last
-  new_first <- newTVar hole
-  return (TSChan count new_first first)
 
 writeTBChan :: TBChan a -> a -> STM ()
 writeTBChan (TBChan count first last) a = do
@@ -102,40 +90,6 @@ tryReadTMChan (TMChan first last) =
           writeTVar first tail
           return $ Just a
 
-readTSChan :: TSChan a -> STM a
-readTSChan (TSChan count first last) =
-  loop where
-    loop = do
-      listhead <- readTVar first
-      head     <- readTVar listhead
-      case head of
-        TNil  -> retry
-        TNull -> do
-          new_first <- readTVar last
-          writeTVar first new_first
-          loop
-        TCons a tail -> do
-          writeTVar first tail
-          modifyTVar' count $ (-) 1
-          return a
-
-tryReadTSChan :: TSChan a -> STM (Maybe a)
-tryReadTSChan (TSChan count first last) =
-  loop where
-    loop = do
-      listhead <- readTVar first
-      head     <- readTVar listhead
-      case head of
-        TNil  -> return Nothing
-        TNull -> do
-          new_first <- readTVar last
-          writeTVar first new_first
-          loop
-        TCons a tail -> do
-          writeTVar first tail
-          modifyTVar' count $ (-) 1
-          return $ Just a
-
 newTBCChan :: Word -> STM (TBCChan a)
 newTBCChan n = do
   closed <- newTVar False
@@ -146,11 +100,6 @@ newTMCChan :: TBCChan a -> STM (TMCChan a)
 newTMCChan (TBCChan closed chan) = do
   new_chan <- newTMChan chan
   return (TMCChan closed new_chan)
-
-newTSCChan :: TBCChan a -> STM (TSCChan a)
-newTSCChan (TBCChan closed chan) = do
-  new_chan <- newTSChan chan
-  return (TSCChan closed new_chan)
 
 writeTBCChan :: TBCChan a -> a -> STM ()
 writeTBCChan (TBCChan closed chan) a = do
@@ -177,16 +126,3 @@ sourceTMCChan chan =
     loop = do
       a <- liftIO $ atomically $ readTMCChan chan
       maybe (return ()) ((>> loop) . yield) a
-
-readTSCChan :: TSCChan a -> STM (Maybe a)
-readTSCChan (TSCChan closed chan) = do
-  b <- readTVar closed
-  if b then tryReadTSChan chan else Just <$> readTSChan chan
-
-sourceTSCChan :: MonadIO m => TSCChan a -> Source m a
-sourceTSCChan chan =
-  loop where
-    loop = do
-      a <- liftIO $ atomically $ readTSCChan chan
-      maybe (return ()) ((>> loop) . yield) a
-

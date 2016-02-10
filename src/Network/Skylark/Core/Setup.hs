@@ -42,10 +42,9 @@ newSettings port timeout =
 -- | Initialize application context from configuration.
 --
 newCtx :: Conf         -- ^ Service configuration
-       -> Text         -- ^ Cabal version
        -> Text         -- ^ Git tag
        -> IO Ctx
-newCtx c version tag = do
+newCtx c tag = do
   name    <- mandatory "app-name" $ c ^. confAppName
   port    <- mandatory "port"     $ c ^. confPort
   timeout <- mandatory "timeout"  $ c ^. confTimeout
@@ -58,8 +57,7 @@ newCtx c version tag = do
   _ctxStart <- getCurrentTime
   return Ctx {..} where
     preamble name =
-      sformat ("n=" % stext % " v=" % stext % " t=" % stext)
-        name version tag
+      sformat ("n=" % stext % " t=" % stext) name tag
 
 -- | Core context with some periodic health checking.
 --

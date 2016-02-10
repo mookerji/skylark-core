@@ -11,7 +11,6 @@ module Test.Network.Skylark.Core.Setup where
 import BasicPrelude
 import Control.Lens
 import Data.Default
-import Data.Version
 import Network.Skylark.Core.Conf
 import Network.Skylark.Core.Setup
 import Network.Skylark.Core.Types
@@ -23,12 +22,12 @@ testCtxInit :: TestTree
 testCtxInit =
   testGroup "New application context"
     [ testCase "Empty configuration" $
-        void (newCtx mempty "" "") `catch` \(MandatoryConfException _) -> return ()
+        void (newCtx mempty "") `catch` \(MandatoryConfException _) -> return ()
     , testCase "Default configuration" $ do
         i <- getDataFileName "conf/info.yaml" >>= getDataFile
         let d = def & confAppName  .~ Just "Testing"
-        t <- newCtx d (txt $ showVersion version) (i ^. ifTag)
-        t ^. ctxPreamble   @?= "n=Testing v=0.1.0 t=deedbeef-fake"
+        t <- newCtx d (i ^. ifTag)
+        t ^. ctxPreamble   @?= "n=Testing t=deedbeef-fake"
     ]
 
 tests :: TestTree

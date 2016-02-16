@@ -62,9 +62,9 @@ newCtx c tag = do
 -- | Core context with some periodic health checking.
 --
 withHealthCheck :: HasCtx e => e -> IO b -> IO b
-withHealthCheck ctx action =
+withHealthCheck c action =
   withAsync action $ \a ->
-    withPeriodic healthCheckInterval (checkHealth ctx) $ \b ->
+    withPeriodic healthCheckInterval (checkHealth c) $ \b ->
       wait b >> wait a
 
 --------------------------------------------------------------------------------
@@ -73,8 +73,8 @@ withHealthCheck ctx action =
 -- Emit a health check metrics
 --
 checkHealth :: HasCtx e => e -> IO ()
-checkHealth ctx =
-  runCoreIO ctx $ do
+checkHealth c =
+  runCoreIO c $ do
     gr <- getEventGroup
     s  <- runStats sampleStats
     mapM_ traceMetric $ measure gr s

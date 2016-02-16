@@ -20,6 +20,7 @@ library
                      , Network.Skylark.Core.Async
                      , Network.Skylark.Core.Conf
                      , Network.Skylark.Core.Constants
+                     , Network.Skylark.Core.Lens
                      , Network.Skylark.Core.Maps
                      , Network.Skylark.Core.Prelude
                      , Network.Skylark.Core.Providers.StatGrab
@@ -41,8 +42,8 @@ library
                      , case-insensitive
                      , conduit
                      , data-default
-                     , envy
                      , either
+                     , envy
                      , exceptions
                      , fast-logger
                      , formatting
@@ -55,6 +56,7 @@ library
                      , resourcet
                      , statgrab
                      , stm
+                     , template-haskell
                      , text
                      , time
                      , transformers-base

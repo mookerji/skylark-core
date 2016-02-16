@@ -8,3 +8,4 @@
 .stack-work/
 dist
 *.DS_Store
+*.tix

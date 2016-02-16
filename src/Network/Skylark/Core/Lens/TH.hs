@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Network.Skylark.Core.Lens
+module Network.Skylark.Core.Lens.TH
   ( makeClassyConstraints
   ) where
 

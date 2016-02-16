@@ -40,7 +40,7 @@ import Data.Time
 import Data.UUID
 import Network.AWS.DynamoDB
 import Network.HTTP.Types
-import Network.Skylark.Core.Lens
+import Network.Skylark.Core.Lens.TH
 import Network.Skylark.Core.Prelude hiding (mask, uninterruptibleMask)
 import Network.Wai
 import Network.Wai.Handler.Warp

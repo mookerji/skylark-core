@@ -40,6 +40,7 @@ import Data.Time
 import Data.UUID
 import Network.AWS.DynamoDB
 import Network.HTTP.Types
+import Network.Skylark.Core.Lens.TH
 import Network.Skylark.Core.Prelude hiding (mask, uninterruptibleMask)
 import Network.Wai
 import Network.Wai.Handler.Warp
@@ -74,19 +75,7 @@ data Conf = Conf
   , _confAppName  :: Maybe Text     -- ^ Name of the application
   } deriving ( Eq, Show )
 
-class HasConf a where
-  confId       :: Lens' a Conf
-  confFile     :: Lens' a (Maybe String)
-  confPort     :: Lens' a (Maybe Int)
-  confTimeout  :: Lens' a (Maybe Int)
-  confLogLevel :: Lens' a (Maybe LogLevel)
-  confAppName  :: Lens' a (Maybe Text)
-
-  confFile      = confId . lens _confFile     (\s a -> s { _confFile = a } )
-  confPort      = confId . lens _confPort     (\s a -> s { _confPort = a } )
-  confTimeout   = confId . lens _confTimeout  (\s a -> s { _confTimeout = a } )
-  confLogLevel  = confId . lens _confLogLevel (\s a -> s { _confLogLevel = a } )
-  confAppName   = confId . lens _confAppName  (\s a -> s { _confAppName = a } )
+$(makeClassy ''Conf)
 
 type MonadConf a =
   ( HasConf  a
@@ -100,9 +89,6 @@ data ConfException = MandatoryConfException String
   deriving ( Show, Eq )
 
 instance Exception ConfException
-
-instance HasConf Conf where
-  confId = id
 
 instance Default Conf where
   def = Conf
@@ -181,30 +167,13 @@ data Ctx = Ctx
   , _ctxStart    :: UTCTime
   }
 
-class (HasConf a, HasEnv a) => HasCtx a where
-  ctxId       :: Lens' a Ctx
-  ctxConf     :: Lens' a Conf
-  ctxEnv      :: Lens' a Env
-  ctxLog      :: Lens' a Log
-  ctxPreamble :: Lens' a Text
-  ctxSettings :: Lens' a Settings
-  ctxStart    :: Lens' a UTCTime
-
-  ctxConf     = ctxId . lens _ctxConf     (\s a -> s { _ctxConf = a } )
-  ctxEnv      = ctxId . lens _ctxEnv      (\s a -> s { _ctxEnv = a } )
-  ctxLog      = ctxId . lens _ctxLog      (\s a -> s { _ctxLog = a } )
-  ctxPreamble = ctxId . lens _ctxPreamble (\s a -> s { _ctxPreamble = a } )
-  ctxSettings = ctxId . lens _ctxSettings (\s a -> s { _ctxSettings = a } )
-  ctxStart    = ctxId . lens _ctxStart    (\s a -> s { _ctxStart = a } )
-
-instance HasCtx Ctx where
-  ctxId = id
+$(makeClassyConstraints ''Ctx [''HasConf, ''HasEnv])
 
 instance HasEnv Ctx where
   environment = ctxEnv
 
 instance HasConf Ctx where
-  confId = ctxConf
+  conf = ctxConf
 
 instance MonadBase b m => MonadBase b (CoreT r m) where
   liftBase = liftBaseDefault
@@ -220,15 +189,15 @@ instance Monad m => MonadReader r (CoreT r m) where
   local f = CoreT . local f . unCoreT
   reader  = CoreT . reader
 
+instance MonadError e m => MonadError e (CoreT r m) where
+  throwError     = lift . throwError
+  catchError m f = CoreT (unCoreT m `catchError` (unCoreT . f))
+
 instance MonadRandom m => MonadRandom (CoreT r m) where
   getRandom   = lift getRandom
   getRandomR  = lift . getRandomR
   getRandoms  = lift getRandoms
   getRandomRs = lift . getRandomRs
-
-instance MonadError e m => MonadError e (CoreT r m) where
-  throwError = lift . throwError
-  catchError m f = CoreT (unCoreT m `catchError` (unCoreT . f))
 
 instance MonadRandom m => MonadRandom (ResourceT m) where
   getRandom   = lift getRandom
@@ -259,22 +228,7 @@ data Upsert = Upsert
   , _upsertVals  :: AttributeValueMap
   } deriving ( Eq, Show )
 
-class HasUpsert a where
-  upsertId    :: Lens' a Upsert
-  upsertTable :: Lens' a Text
-  upsertTime  :: Lens' a UTCTime
-  upsertKey   :: Lens' a AttributeValueMap
-  upsertExprs :: Lens' a [Text]
-  upsertVals  :: Lens' a AttributeValueMap
-
-  upsertTable = upsertId . lens _upsertTable (\s a -> s { _upsertTable = a } )
-  upsertTime  = upsertId . lens _upsertTime  (\s a -> s { _upsertTime = a } )
-  upsertKey   = upsertId . lens _upsertKey   (\s a -> s { _upsertKey = a } )
-  upsertExprs = upsertId . lens _upsertExprs (\s a -> s { _upsertExprs = a } )
-  upsertVals  = upsertId . lens _upsertVals  (\s a -> s { _upsertVals = a } )
-
-instance HasUpsert Upsert where
-  upsertId = id
+$(makeClassy ''Upsert)
 
 --------------------------------------------------------------------------------
 -- Common type classes

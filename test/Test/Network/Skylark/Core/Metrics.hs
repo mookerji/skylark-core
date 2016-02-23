@@ -54,7 +54,7 @@ testStatGrab =
         void $ runStats sampleStats
     , testCase "statsgrab produces gauge metrics" $ do
         s <- runStats sampleStats
-        assertBool "Invalid number of stats" $ length (measure "test!" s) >= 66
+        assertBool "Invalid number of stats" $ length (measure "test!" s) >= 10
         checkStatList $ measure "test!" s
     ]
 

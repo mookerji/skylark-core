@@ -105,7 +105,7 @@ traceError' s = newStderrTrace LevelError >>= runLoggingT (trace' logErrorN s)
 type ToMetric t = Group -> Bucket -> t -> Metric
 
 getHostName :: IO HostName
-getHostName = liftM hostName $ runStats (snapshot :: Stats Host)
+getHostName =  hostName <$> runStats (snapshot :: Stats Host)
 
 -- | Produces an string used to identify a group of events, typically
 -- using the app and host name.

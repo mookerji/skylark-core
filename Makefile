@@ -1,6 +1,6 @@
 .PHONY: all hooks test build clean lint stylish
 
-all: lint stylish test
+all: hooks lint stylish test
 
 hooks:
 	cp hooks/* .git/hooks/

@@ -1,6 +1,9 @@
-.PHONY: all test build clean lint stylish
+.PHONY: all hooks test build clean lint stylish
 
-all: lint stylish test
+all: hooks lint stylish test
+
+hooks:
+	cp hooks/* .git/hooks/
 
 test:
 	AWS_SECRET_ACCESS_KEY=foo AWS_ACCESS_KEY_ID=bar stack build skylark-core --test

@@ -7,19 +7,15 @@
 -- Prelude module for Skylark Core.
 
 module Network.Skylark.Core.Prelude
-  ( module BasicPrelude
-  , module Data.UUID
-  , module Formatting
+  ( module Exports
   , fold'
   , foldM'
   , maybe'
   ) where
 
-import BasicPrelude
-import Data.UUID    (UUID, fromASCIIBytes, toASCIIBytes)
-import Formatting   (float, int, sformat, stext, (%))
-
-{-# ANN module ("HLint: ignore Use import/export shortcut"::String) #-}
+import BasicPrelude as Exports
+import Data.UUID    as Exports (UUID, fromASCIIBytes, toASCIIBytes)
+import Formatting   as Exports (float, int, sformat, stext, (%))
 
 fold' :: Foldable t => t a -> b -> (b -> a -> b) -> b
 fold' as b f = foldl' f b as

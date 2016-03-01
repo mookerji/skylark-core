@@ -18,6 +18,7 @@
 
 module Network.Skylark.Core.Types where
 
+import Control.Concurrent.MVar
 import Control.Concurrent.STM
 import Control.Lens                 hiding ((.=))
 import Control.Monad.Base
@@ -216,6 +217,7 @@ type MonadMap k m =
   ( Eq k
   , Hashable k
   , MonadIO m
+  , MonadMask m
   )
 
 type AttributeValueMap = HashMap Text AttributeValue
@@ -282,12 +284,11 @@ class UnTxt a where
   untxt :: (Monad m) => Text -> m a
 
 instance UnTxt String where
-  untxt = return . Data.Text.unpack
+  untxt = return . unpack
 
 instance UnTxt UTCTime where
-  untxt s = do
-    s' <- untxt s
-    parseTimeM False defaultTimeLocale "%FT%T%z" s'
+  untxt s =
+    untxt s >>= parseTimeM False defaultTimeLocale "%FT%T%z"
 
 instance ToJSON UUID where
   toJSON = toJSON . toText
@@ -372,6 +373,11 @@ data TWCChan a = TWCChan {-# UNPACK #-} !(TVar Bool)
 data TRCChan a = TRCChan {-# UNPACK #-} !(TVar Bool)
                          {-# UNPACK #-} !(TRChan a)
   deriving (Eq, Typeable)
+
+--------------------------------------------------------------------------------
+-- MVars
+
+type Barrier = MVar ()
 
 --------------------------------------------------------------------------------
 -- Events: logging and metrics monitoring

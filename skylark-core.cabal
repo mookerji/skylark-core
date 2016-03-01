@@ -22,6 +22,7 @@ library
                      , Network.Skylark.Core.Constants
                      , Network.Skylark.Core.Lens.TH
                      , Network.Skylark.Core.Maps
+                     , Network.Skylark.Core.MVars
                      , Network.Skylark.Core.Prelude
                      , Network.Skylark.Core.Providers.StatGrab
                      , Network.Skylark.Core.Retries
@@ -69,6 +70,7 @@ library
   default-extensions:  NoImplicitPrelude
                        OverloadedStrings
                        RecordWildCards
+                       FlexibleContexts
 
 test-suite test
   type:                exitcode-stdio-1.0
@@ -81,6 +83,7 @@ test-suite test
                      , Test.Network.Skylark.Core.Setup
                      , Test.Network.Skylark.Core.TChans
                      , Test.Network.Skylark.Core.Test
+                     , Test.Network.Skylark.Core.Types
   build-depends:       base
                      , basic-prelude
                      , data-default
@@ -97,6 +100,7 @@ test-suite test
                      , tasty-hunit
                      , tasty-quickcheck
                      , text
+                     , time
   ghc-options:         -Wall
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude

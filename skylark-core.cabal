@@ -22,6 +22,7 @@ library
                      , Network.Skylark.Core.Constants
                      , Network.Skylark.Core.Lens.TH
                      , Network.Skylark.Core.Maps
+                     , Network.Skylark.Core.MVars
                      , Network.Skylark.Core.Prelude
                      , Network.Skylark.Core.Providers.StatGrab
                      , Network.Skylark.Core.Retries
@@ -69,6 +70,7 @@ library
   default-extensions:  NoImplicitPrelude
                        OverloadedStrings
                        RecordWildCards
+                       FlexibleContexts
 
 test-suite test
   type:                exitcode-stdio-1.0

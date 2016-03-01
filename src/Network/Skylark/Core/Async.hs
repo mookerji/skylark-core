@@ -15,8 +15,6 @@ import Control.Concurrent
 import Control.Concurrent.Async
 import Network.Skylark.Core.Prelude
 
-{-# ANN module ("HLint: ignore Use import/export shortcut"::String) #-}
-
 -- | Periodically execute a monadic action (uses fork).
 --
 withPeriodic :: Int                -- ^ Interval (microseconds)

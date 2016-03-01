@@ -12,11 +12,13 @@ module Network.Skylark.Core.Maps
   , tryPut
   , remove
   , list
+  , bracketed
   ) where
 
 import           Control.Concurrent.STM
+import           Control.Monad.Catch
 import qualified Data.HashMap.Strict          as M
-import           Network.Skylark.Core.Prelude
+import           Network.Skylark.Core.Prelude hiding (bracket_)
 import           Network.Skylark.Core.Types
 
 get :: MonadMap k m => TVar (HashMap k v) -> k -> m (Maybe v)
@@ -50,3 +52,8 @@ list m =
   liftIO $ atomically $ do
     n <- readTVar m
     return $ M.toList n
+
+bracketed :: MonadMap k m => TVar (HashMap k v) -> k -> v -> m c -> m c
+bracketed m k v =
+  bracket_ (put m k v) (remove m k)
+

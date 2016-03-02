@@ -30,5 +30,8 @@ diskIO = snapshots
 networkIO :: Stats [NetworkIO]
 networkIO = snapshots
 
+fileSystem :: Stats [FileSystem]
+fileSystem = snapshots
+
 sampleStats ::  Stats SystemStat
-sampleStats = (,,,,) <$> host <*> memory <*> load <*> diskIO <*> networkIO
+sampleStats = (,,,,,) <$> host <*> memory <*> load <*> diskIO <*> networkIO <*> fileSystem

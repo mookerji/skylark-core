@@ -436,6 +436,7 @@ type SystemStat =
   , Load
   , [DiskIO]
   , [NetworkIO]
+  , [FileSystem]
   )
 
 instance Txt Metric where
@@ -484,13 +485,22 @@ instance Measurable NetworkIO where
     , Gauge gr (ifaceIOName <> ".ifaceCollisions") $ fromIntegral ifaceCollisions
     ]
 
+instance Measurable FileSystem where
+  measure gr FileSystem{..} =
+    [ Gauge gr (fsDeviceName <> ".fsUsed")         $ fromIntegral fsUsed
+    , Gauge gr (fsDeviceName <> ".fsFree")         $ fromIntegral fsFree
+    , Gauge gr (fsDeviceName <> ".fsUsedFraction") $ fromIntegral fsUsed / fromIntegral fsSize
+    , Gauge gr (fsDeviceName <> ".fsFreeFraction") $ fromIntegral fsFree / fromIntegral fsSize
+    ]
+
 instance Measurable SystemStat where
-  measure gr (h, m, l, d, n) =
+  measure gr (h, m, l, d, n, f) =
     measure gr h <>
     measure gr m <>
     measure gr l <>
     measure gr d <>
-    measure gr n
+    measure gr n <>
+    measure gr f
 
 instance MonadMask m => MonadMask (EitherT err m) where
   mask act = EitherT $ mask $ \restore ->

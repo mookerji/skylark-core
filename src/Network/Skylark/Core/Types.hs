@@ -74,6 +74,7 @@ data Conf = Conf
   , _confTimeout  :: Maybe Int      -- ^ Connection timeout (sec)
   , _confLogLevel :: Maybe LogLevel -- ^ Logging level
   , _confAppName  :: Maybe Text     -- ^ Name of the application
+  , _confMetrics  :: Maybe Bool     -- ^ Enable metrics collection
   } deriving ( Eq, Show )
 
 $(makeClassy ''Conf)
@@ -98,6 +99,7 @@ instance Default Conf where
     , _confTimeout  = Just 120
     , _confLogLevel = Just LevelInfo
     , _confAppName  = Nothing
+    , _confMetrics  = Nothing
     }
 
 instance FromJSON Conf where
@@ -107,7 +109,8 @@ instance FromJSON Conf where
       v .:? "port"      <*>
       v .:? "timeout"   <*>
       v .:? "log-level" <*>
-      v .:? "app-name"
+      v .:? "app-name"  <*>
+      v .:? "metrics"
   parseJSON _ = mzero
 
 instance FromEnv Conf where
@@ -117,7 +120,8 @@ instance FromEnv Conf where
       envMaybe "SKYLARK_PORT"      <*>
       envMaybe "SKYLARK_TIMEOUT"   <*>
       envMaybe "SKYLARK_LOG_LEVEL" <*>
-      envMaybe "SKYLARK_APP_NAME"
+      envMaybe "SKYLARK_APP_NAME"  <*>
+      envMaybe "SKYLARK_METRICS"
 
 instance Monoid Conf where
   mempty = Conf
@@ -126,6 +130,7 @@ instance Monoid Conf where
     , _confTimeout  = Nothing
     , _confLogLevel = Nothing
     , _confAppName  = Nothing
+    , _confMetrics  = Nothing
     }
 
   mappend a b = Conf
@@ -134,6 +139,7 @@ instance Monoid Conf where
     , _confTimeout  = merge _confTimeout a b
     , _confLogLevel = merge _confLogLevel a b
     , _confAppName  = merge _confAppName a b
+    , _confMetrics  = merge _confMetrics a b
     }
 
 -- | Given a record field accessor. return the second non-Nothing

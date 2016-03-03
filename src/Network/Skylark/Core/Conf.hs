@@ -83,6 +83,14 @@ appName =
       <> metavar "APP-NAME"
       <> help    "Application name"
 
+-- | Metrics collection.
+--
+metrics :: Parser Bool
+metrics =
+  switch
+    $  long "metrics"
+    <> help "Metrics Collection"
+
 -- | Configuration parser.
 --
 parseConf :: Parser Conf
@@ -91,7 +99,8 @@ parseConf = Conf    <$>
   optional port     <*>
   optional timeout  <*>
   optional logLevel <*>
-  optional appName
+  optional appName  <*>
+  optional metrics
 
 -- | Produce a full command line options parser.
 --

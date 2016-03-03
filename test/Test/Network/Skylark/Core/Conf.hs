@@ -38,11 +38,17 @@ import Test.Tasty.QuickCheck
 parse :: [String] -> Maybe Conf
 parse = getParseResult . execParserPure (prefs idm) (parser parseConf)
 
+confTest' :: Conf
+confTest' = confTest & confMetrics .~ Just False
+
+def' :: Conf
+def' = def & confMetrics .~ Just False
+
 testGeneral :: TestTree
 testGeneral =
   testGroup "General arguments"
     [ testCase "None" $
-        parse [] @?= Just confTest
+        parse [] @?= Just confTest'
     , testCase "Junk" $
         parse ["junk"] @?= Nothing
     ]
@@ -55,7 +61,7 @@ testConfFile =
     , testCase "Long" $
         parse ["--conf-file", "conf/prod.yaml"] @?= Just testOptions
     ] where
-      testOptions = confTest & confFile .~ Just "conf/prod.yaml"
+      testOptions = confTest' & confFile .~ Just "conf/prod.yaml"
 
 testPort :: TestTree
 testPort =
@@ -67,7 +73,7 @@ testPort =
     , testCase "Bad integer" $
         parse ["-p", "junk"] @?= Nothing
     ] where
-      testOptions = confTest & confPort .~ Just 3000
+      testOptions = confTest' & confPort .~ Just 3000
 
 testTimeout :: TestTree
 testTimeout =
@@ -79,7 +85,7 @@ testTimeout =
     , testCase "Bad integer" $
         parse ["-t", "junk"] @?= Nothing
     ] where
-      testOptions = confTest & confTimeout .~ Just 1
+      testOptions = confTest' & confTimeout .~ Just 1
 
 testLogLevel :: TestTree
 testLogLevel =
@@ -95,7 +101,7 @@ testLogLevel =
     , testCase "Other" $
         parse ["--log-level", "wut"] @?= Just (testOptions (LevelOther "wut"))
     ] where
-      testOptions level = confTest & confLogLevel .~ Just level
+      testOptions level = confTest' & confLogLevel .~ Just level
 
 --------------------------------------------------------------------------------
 -- Environmental parsing stuff
@@ -115,6 +121,7 @@ testEnv =
           , _confTimeout  = Nothing
           , _confLogLevel = Nothing
           , _confAppName  = Nothing
+          , _confMetrics  = Nothing
           }
     , testCase "Port and Timeout" $ do
         unsetEnv "SKYLARK_CONF_FILE"
@@ -128,6 +135,7 @@ testEnv =
           , _confTimeout  = Just 1
           , _confLogLevel = Nothing
           , _confAppName  = Nothing
+          , _confMetrics  = Nothing
           }
      , testCase "String value" $ do
         setEnv "SKYLARK_CONF_FILE" "l"
@@ -141,6 +149,7 @@ testEnv =
           , _confTimeout  = Just 1
           , _confLogLevel = Nothing
           , _confAppName  = Nothing
+          , _confMetrics  = Nothing
           }
      , testCase "LevelInfo" $ do
         unsetEnv "SKYLARK_CONF_FILE"
@@ -154,6 +163,7 @@ testEnv =
           , _confTimeout  = Nothing
           , _confLogLevel = Just LevelInfo
           , _confAppName  = Nothing
+          , _confMetrics  = Nothing
           }
      , testCase "LevelOther" $ do
         unsetEnv "SKYLARK_CONF_FILE"
@@ -167,6 +177,7 @@ testEnv =
           , _confTimeout  = Nothing
           , _confLogLevel = Just (LevelOther "other")
           , _confAppName  = Nothing
+          , _confMetrics  = Nothing
           }
     ]
 
@@ -181,6 +192,7 @@ testDataFileFetch =
           , _confTimeout  = Just 121
           , _confLogLevel = Just LevelDebug
           , _confAppName  = Nothing
+          , _confMetrics  = Nothing
           }
     , testCase "Existing data file" $ do
         c <- getDataFile "conf/dev.yaml"
@@ -190,6 +202,7 @@ testDataFileFetch =
           , _confTimeout  = Just 120
           , _confLogLevel = Just LevelInfo
           , _confAppName  = Nothing
+          , _confMetrics  = Nothing
           }
     ]
 
@@ -197,27 +210,27 @@ testConfMonoid :: TestTree
 testConfMonoid =
   testGroup "Testing monoid merging of Conf's Maybe fields"
     [ testCase "Both a and b are Nothings" $ do
-        let a = confTest
+        let a = confTest'
             b = a
         a <> b @?= a
     , testCase "Both a and b have one Just" $ do
-        let a = confTest & confPort .~ Just 1
+        let a = confTest' & confPort .~ Just 1
             b = a
         a <> b @?= a
     , testCase "b has a Just" $ do
-        let a = confTest
+        let a = confTest'
             b = a & confPort .~ Just 1
         a <> b @?= b
     , testCase "a has a Just" $ do
-        let a = confTest & confPort .~ Just 1
+        let a = confTest' & confPort .~ Just 1
             b = a & confPort .~ Nothing
         a <> b @?= a
     , testCase "Two separate Just fields are in the merged" $ do
-        let a = confTest & confPort .~ Just 1
+        let a = confTest' & confPort .~ Just 1
             b = a & confTimeout .~ Just 120
         a <> b @?= b
     , testCase "Empty conf is ignored" $ do
-        let a = confTest & confPort .~ Just 1
+        let a = confTest' & confPort .~ Just 1
             b = mempty
         a <> b @?= a
         b <> a @?= a
@@ -231,13 +244,13 @@ testGetConf =
         unsetEnv "SKYLARK_LOG_LEVEL"
         unsetEnv "SKYLARK_PORT"
         c <- getConf parseConf getDataFileName
-        c @?= (def & confPort .~ Just 3030)
+        c @?= (def' & confPort .~ Just 3030)
     , testCase "Sanity test on parsing of configuration with a non-default" $ do
         unsetEnv "SKYLARK_CONF_FILE"
         unsetEnv "SKYLARK_LOG_LEVEL"
         setEnv "SKYLARK_PORT" "2222"
         c <- getConf parseConf getDataFileName
-        c @?= (def & confPort .~ Just 2222)
+        c @?= (def' & confPort .~ Just 2222)
     ]
 
 instance Arbitrary LogLevel where
@@ -263,7 +276,8 @@ instance Arbitrary Conf where
     maybeGen arbitrary                  <*>
     maybeGen arbitrary                  <*>
     maybeGen arbitrary                  <*>
-    maybeGen (liftA txt nonEmptyString)
+    maybeGen (liftA txt nonEmptyString) <*>
+    maybeGen arbitrary
 
 testEnvProperties :: TestTree
 testEnvProperties = testGroup "(checked by QuickCheck)"
@@ -279,6 +293,7 @@ testEnvProperties = testGroup "(checked by QuickCheck)"
                   set "SKYLARK_TIMEOUT"   _confTimeout
                   set "SKYLARK_LOG_LEVEL" _confLogLevel
                   set "SKYLARK_APP_NAME"  _confAppName
+                  set "SKYLARK_METRICS"   _confMetrics
                   decodeEnv
         Test.QuickCheck.Monadic.assert $ res == Right c
   ]

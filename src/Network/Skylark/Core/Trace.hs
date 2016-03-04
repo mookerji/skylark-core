@@ -124,13 +124,18 @@ traceEvent :: (Num t, MonadCore e m)
            -> t                  -- ^ Any numeric value
            -> m ()
 traceEvent metricType key value = do
-  group' <- getEventGroup
-  trace logInfoN $ sformat ("event=metric : " % stext) (txt $ metricType group' key value)
+  metrics <- view confMetrics
+  when (fromMaybe False metrics) $ do
+    group' <- getEventGroup
+    trace logInfoN $ sformat ("event=metric : " % stext) (txt $ metricType group' key value)
 
 -- | Emit a single metric event to the log.
 --
 traceMetric :: MonadCore e m => Metric -> m ()
-traceMetric metric = trace logInfoN $ sformat ("event=metric : " % stext) (txt metric)
+traceMetric metric = do
+  metrics <- view confMetrics
+  when (fromMaybe False metrics) $
+    trace logInfoN $ sformat ("event=metric : " % stext) (txt metric)
 
 -- | Emit a key-value counter.
 --

@@ -103,6 +103,14 @@ testLogLevel =
     ] where
       testOptions level = confTest' & confLogLevel .~ Just level
 
+testMetrics :: TestTree
+testMetrics =
+  testGroup "Metrics flag"
+    [ testCase "Long" $
+        parse ["--metrics"] @?= Just testOptions
+    ] where
+      testOptions = confTest' & confMetrics .~ Just True
+
 --------------------------------------------------------------------------------
 -- Environmental parsing stuff
 
@@ -309,6 +317,7 @@ tests =
     , testPort
     , testTimeout
     , testLogLevel
+    , testMetrics
     , testEnv
     , testDataFileFetch
     , testConfMonoid

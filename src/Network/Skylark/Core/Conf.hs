@@ -7,7 +7,8 @@
 -- Conf module for Skylark Core.
 
 module Network.Skylark.Core.Conf
-  ( getConf
+  ( bool
+  , getConf
   , getDataFile
   , mandatory
   , parser
@@ -91,6 +92,11 @@ metrics =
     $  long "metrics"
     <> help "Metrics Collection"
 
+bool :: Parser Bool -> Parser (Maybe Bool)
+bool =
+  fmap $ \b ->
+    if b then Just b else Nothing
+
 -- | Configuration parser.
 --
 parseConf :: Parser Conf
@@ -100,7 +106,7 @@ parseConf = Conf    <$>
   optional timeout  <*>
   optional logLevel <*>
   optional appName  <*>
-  optional metrics
+  bool metrics
 
 -- | Produce a full command line options parser.
 --

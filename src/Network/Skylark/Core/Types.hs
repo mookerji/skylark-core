@@ -286,6 +286,10 @@ instance Txt Request where
     sformat ("method=" % stext % " path=" % stext)
       (txt $ requestMethod req) (txt $ rawPathInfo req)
 
+instance Txt a => Txt (Maybe a) where
+  txt (Just a) = txt a
+  txt Nothing  = "null"
+
 class UnTxt a where
   untxt :: (Monad m) => Text -> m a
 
@@ -324,6 +328,14 @@ instance FromJSON InfoFile where
     InfoFile     <$>
       v .: "tag"
   parseJSON _ = mzero
+
+-- Merge JSON objects into a single JSON object.
+--
+mergeObjects :: Value -> Value -> Value
+mergeObjects (Object o1) (Object o2) = Object $ o1 <> o2
+mergeObjects _           (Object o2) = Object o2
+mergeObjects (Object o1)  _          = Object o1
+mergeObjects _ v                     = v
 
 --------------------------------------------------------------------------------
 -- Retries

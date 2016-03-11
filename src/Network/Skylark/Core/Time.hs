@@ -3,9 +3,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving  #-}
 
 -- |
 -- Module:      Network.Skylark.API.Time
@@ -20,57 +18,32 @@
 --  per `Format` type, for slightly more flexible parsing.
 
 module Network.Skylark.Core.Time
-    (
-    -- * Time
-      Format (..)
-    , Time   (..)
     -- * Formats
-    , ISO8601
+    ( ISO8601 (..)
     -- * Helpers
-    , toUTCTime
-    , convert
+    , IsUTCTime
+    , toUtcTime
+    , parseTime
+    , renderFormattedTime
+    -- * Re-export Data.Time
+    , module Data.Time
     ) where
 
 import Data.Aeson
 import Data.Data                    (Data)
-import Data.Tagged
 import Data.Text
-import Data.Time                    (UTCTime, defaultTimeLocale)
-import Data.Time.Format             (formatTime, parseTimeM)
+import Data.Time                    hiding (parseTime)
 import GHC.Generics                 (Generic)
 import Network.Skylark.Core.Prelude
 import Network.Skylark.Core.Types
 
-data Format
-  = ISO8601Format
-    deriving (Eq, Read, Show, Data, Typeable, Generic)
+newtype ISO8601 = ISO8601 { iso8601 :: UTCTime }
+  deriving ( Eq, Read, Show, Data, Typeable, Generic )
 
-deriving instance Typeable 'ISO8601Format
-
-data Time :: Format -> * where
-  Time :: UTCTime -> Time a
-    deriving (Data, Typeable, Generic)
-
-deriving instance Eq   (Time a)
-deriving instance Ord  (Time a)
-deriving instance Read (Time a)
-deriving instance Show (Time a)
-
-convert :: Time a -> Time b
-convert (Time t) = Time t
-
--- Types -> tagged Time types
-type ISO8601 = Time 'ISO8601Format
-
-class TimeFormat a where
-  format :: Tagged a String
-
-toUTCTime :: Time a -> UTCTime
-toUTCTime (Time a) = a
-
--- Define time formats for formatting dates
-instance TimeFormat ISO8601 where
-  format = Tagged "%FT%T%z"
+class IsUTCTime a where
+  toUtcTime :: a -> UTCTime
+  parseTime :: Monad m => Text -> m a
+  renderFormattedTime :: a -> String
 
 -- Txt instances
 instance Txt ISO8601 where
@@ -89,19 +62,8 @@ instance FromJSON ISO8601 where
 instance ToJSON ISO8601 where
   toJSON = toJSON . txt
 
--- Parse time.
-parseTime :: forall a m. TimeFormat (Time a) => Monad m => Text -> m (Time a)
-parseTime t =
-  Time <$> parseTimeM False defaultTimeLocale (untag f) (unpack t)
-  where
-    f :: Tagged (Time a) String
-    f = format
-
--- From amazonka. Given a tagged time format, untag it, get its formatter and
---  format the date.
-renderFormattedTime :: forall a. TimeFormat (Time a) => Time a -> String
-renderFormattedTime (Time t) =
-  formatTime defaultTimeLocale (untag f) t
-  where
-    f :: Tagged (Time a) String
-    f = format
+-- TimeFormat
+instance IsUTCTime ISO8601 where
+  toUtcTime = iso8601
+  parseTime = fmap ISO8601 . parseTimeM False defaultTimeLocale "%FT%T%z" . unpack
+  renderFormattedTime = formatTime defaultTimeLocale "%FT%T%z" . toUtcTime

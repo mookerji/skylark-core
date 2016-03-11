@@ -1,18 +1,20 @@
 -- |
--- Module:      Test.Network.Skylark.Core.TChans
--- Copyright:   (c) 2015 Mark Fine
+-- Module:      Test.Network.Skylark.Core.Time
+-- Copyright:   (c) 2015 Joshua Gross
 -- License:     BSD3
--- Maintainer:  Mark Fine <mark@swift-nav.com>
+-- Maintainer:  Joshua Gross <josh@swift-nav.com>
 --
--- Test send and receive TChans module for Skylark Core.
+-- Test time parse / format.
 {-# OPTIONS  -fno-warn-orphans          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
-module Test.Network.Skylark.Core.Types
+module Test.Network.Skylark.Core.Time
   ( tests
   ) where
 
 import Data.Time
 import Network.Skylark.Core.Prelude
+import Network.Skylark.Core.Time
 import Network.Skylark.Core.Types
 import Test.QuickCheck.Monadic
 import Test.Tasty
@@ -22,21 +24,22 @@ instance Arbitrary UTCTime where
     arbitrary = do
       randomDay   <- choose (1, 29) :: Gen Int
       randomMonth <- choose (1, 12) :: Gen Int
-      randomYear  <- choose (1980, 2015) :: Gen Integer
+      randomYear  <- choose (1980, 2050) :: Gen Integer
       randomTime  <- choose (0, 86401) :: Gen Int
       return $ UTCTime (fromGregorian randomYear randomMonth randomDay) (fromIntegral randomTime)
 
 testUntxt :: TestTree
 testUntxt =
-  testGroup "Untxt tests"
-    [ testProperty "UTCTime" $
+  testGroup "UnTxt tests"
+    [ testProperty "ISO8601" $
         \t -> monadicIO $ do
-          t' <- run $ untxt (txt t)
-          assert $ (t :: UTCTime) == t'
+          let isoTime :: ISO8601 = ISO8601 t
+          t' <- run $ untxt (txt isoTime)
+          assert $ (t :: UTCTime) == (toUtcTime (t' :: ISO8601) :: UTCTime)
     ]
 
 tests :: TestTree
 tests =
-  testGroup "Untxt tests"
+  testGroup "UnTxt tests"
     [ testUntxt
     ]

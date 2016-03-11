@@ -28,6 +28,7 @@ library
                      , Network.Skylark.Core.Retries
                      , Network.Skylark.Core.Setup
                      , Network.Skylark.Core.TChans
+                     , Network.Skylark.Core.Time
                      , Network.Skylark.Core.Timers
                      , Network.Skylark.Core.Trace
                      , Network.Skylark.Core.Types
@@ -57,6 +58,7 @@ library
                      , resourcet
                      , statgrab
                      , stm
+                     , tagged
                      , template-haskell
                      , text
                      , time

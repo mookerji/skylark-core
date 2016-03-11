@@ -28,6 +28,7 @@ module Network.Skylark.Core.Time
     , ISO8601
     -- * Helpers
     , toUTCTime
+    , convert
     ) where
 
 import Data.Aeson
@@ -55,8 +56,8 @@ deriving instance Ord  (Time a)
 deriving instance Read (Time a)
 deriving instance Show (Time a)
 
--- convert :: Time a -> Time b
--- convert (Time t) = Time t
+convert :: Time a -> Time b
+convert (Time t) = Time t
 
 -- Types -> tagged Time types
 type ISO8601 = Time 'ISO8601Format
@@ -72,10 +73,12 @@ instance TimeFormat ISO8601 where
   format = Tagged "%FT%T%z"
 
 -- Txt instances
-instance Txt ISO8601 where txt = pack . renderFormattedTime
+instance Txt ISO8601 where
+  txt = pack . renderFormattedTime
 
 -- UnTxt instances
-instance UnTxt ISO8601 where untxt = parseTime
+instance UnTxt ISO8601 where
+  untxt = parseTime
 
 -- FromJSON instances
 instance FromJSON ISO8601 where

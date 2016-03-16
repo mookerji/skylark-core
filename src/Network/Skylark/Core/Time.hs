@@ -20,7 +20,7 @@
 module Network.Skylark.Core.Time
   (
   -- * Formats
-  ISO8601 (..)
+    ISO8601 (..)
   -- * Helpers
   , IsUTCTime
   , toUtcTime

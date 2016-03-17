@@ -18,16 +18,17 @@
 --  per `Format` type, for slightly more flexible parsing.
 
 module Network.Skylark.Core.Time
-    -- * Formats
-    ( ISO8601 (..)
-    -- * Helpers
-    , IsUTCTime
-    , toUtcTime
-    , parseTime
-    , renderFormattedTime
-    -- * Re-export Data.Time
-    , module Data.Time
-    ) where
+  (
+  -- * Formats
+    ISO8601 (..)
+  -- * Helpers
+  , IsUTCTime
+  , toUtcTime
+  , parseTime
+  , renderFormattedTime
+  -- * Re-export Data.Time
+  , module Data.Time
+  ) where
 
 import Data.Aeson
 import Data.Data                    (Data)

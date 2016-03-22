@@ -59,7 +59,7 @@ data SampleRecord = SampleRecord
   , _sfFormat      :: Format
   , _sfFormatArray :: [Format]
   , _sfAdt         :: ADT
-  , _sfAdts        :: [ ADT ]
+  , _sfAdts        :: [ADT]
   , _sfDouble      :: Double
   , _sfMaybeDouble :: Maybe Double
   , _sfInt         :: Int

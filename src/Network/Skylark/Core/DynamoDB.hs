@@ -6,7 +6,7 @@
 -- License:     BSD3
 -- Maintainer:  Joshua Gross <josh@swift-nav.com>
 --
--- Common types shared internally in Skylark API model types.
+-- DynamoDB interfaces, utilities, and convenience functions.
 
 module Network.Skylark.Core.DynamoDB where
 
@@ -14,6 +14,7 @@ import           Control.Lens                 hiding ((.=))
 import           Data.Aeson                   as A
 import qualified Data.HashMap.Strict          as M
 import qualified Data.Vector                  as V
+import           Network.AWS.Data.Text
 import           Network.AWS.DynamoDB
 import           Network.Skylark.Core.Prelude
 
@@ -57,6 +58,11 @@ valueToAttributeValue A.Null        = attributeValue & avNULL .~ Just True
 --
 -- Again, code inspired by a thread on Amazonka:
 -- https://github.com/brendanhay/amazonka/issues/263#issuecomment-175295969
+--
+-- Note that the Prelude.read here is going to throw an exception if v
+-- is not a parseable to a number of some kind. We'll probably want to
+-- use Attoparsec here:
+-- https://hackage.haskell.org/package/attoparsec-0.13.0.1/docs/Data-Attoparsec-Text.html#v:scientific
 attributeValueToValue :: AttributeValue -> A.Value
 attributeValueToValue av
   | Just v <- av ^. avS                 = A.String v
@@ -65,4 +71,8 @@ attributeValueToValue av
   |      v <- av ^. avM, not (M.null v) = A.Object $ fmap attributeValueToValue v
   |     vs <- av ^. avL                 = A.Array (attributeValueToValue <$> V.fromList vs)
   | Just _ <- av ^. avNULL              = A.Null
+  |     vs <- av ^. avNS                = A.Array (V.fromList $ fmap read vs)
+  | Just v <- av ^. avB                 = A.String $ toText v
+  |     vs <- av ^. avBS                = A.Array (V.fromList $ fmap (String . toText) vs )
+  |     vs <- av ^. avSS                = A.Array (V.fromList $ fmap String vs)
   | otherwise                           = A.Null

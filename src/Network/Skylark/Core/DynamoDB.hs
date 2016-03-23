@@ -59,20 +59,27 @@ valueToAttributeValue A.Null        = attributeValue & avNULL .~ Just True
 -- Again, code inspired by a thread on Amazonka:
 -- https://github.com/brendanhay/amazonka/issues/263#issuecomment-175295969
 --
--- Note that the Prelude.read here is going to throw an exception if v
--- is not a parseable to a number of some kind. We'll probably want to
--- use Attoparsec here:
--- https://hackage.haskell.org/package/attoparsec-0.13.0.1/docs/Data-Attoparsec-Text.html#v:scientific
+-- A few notes:
+--
+-- - The Prelude.read here is going to throw an exception if v is not
+--   a parseable to a number of some kind. We'll probably want to use
+--   Attoparsec here:
+--   https://hackage.haskell.org/package/attoparsec-0.13.0.1/docs/Data-Attoparsec-Text.html#v:scientific
+-- - The JSON object auto-serialization/coercion scheme here doesn't
+--   used the B, BS, and SS formats from Dynamo; instead, we're using
+--   avL by default. W.r.t. FromAttributeValue, don't expect roundtrip
+--   serialization piggybacked on JSON types to work on these other
+--   sequence types.
 attributeValueToValue :: AttributeValue -> A.Value
 attributeValueToValue av
   | Just v <- av ^. avS                 = A.String v
   | Just v <- av ^. avN                 = A.Number $ read v
   | Just v <- av ^. avBOOL              = A.Bool v
   |      v <- av ^. avM, not (M.null v) = A.Object $ fmap attributeValueToValue v
-  |     vs <- av ^. avL                 = A.Array (attributeValueToValue <$> V.fromList vs)
+  |     vs <- av ^. avL                 = A.Array $ attributeValueToValue <$> V.fromList vs
   | Just _ <- av ^. avNULL              = A.Null
-  |     vs <- av ^. avNS                = A.Array (V.fromList $ fmap read vs)
+  |     vs <- av ^. avNS                = A.Array $ V.fromList $ fmap read vs
   | Just v <- av ^. avB                 = A.String $ toText v
-  |     vs <- av ^. avBS                = A.Array (V.fromList $ fmap (String . toText) vs )
-  |     vs <- av ^. avSS                = A.Array (V.fromList $ fmap String vs)
+  |     vs <- av ^. avBS                = A.Array $ V.fromList $ fmap (String . toText) vs
+  |     vs <- av ^. avSS                = A.Array $ V.fromList $ fmap String vs
   | otherwise                           = A.Null
